@@ -1,4 +1,5 @@
 import pandas as pd
+import random
 
 mushrooms_og = pd.read_csv('mushroom.csv')
 mushrooms_renamed = mushrooms_og.copy()
@@ -112,7 +113,6 @@ mushrooms_renamed['ring-type'] = mushrooms_renamed['ring-type'].replace({
     '?': 'unknown'
 })
 
-# Replace values in the 'habitat' column
 mushrooms_renamed['habitat'] = mushrooms_renamed['habitat'].replace({
     'g': 'grasses', 
     'l': 'leaves', 
@@ -124,7 +124,6 @@ mushrooms_renamed['habitat'] = mushrooms_renamed['habitat'].replace({
     'd': 'woods'
 })
 
-# Replace values in the 'season' column
 mushrooms_renamed['season'] = mushrooms_renamed['season'].replace({
     's': 'spring', 
     'u': 'summer', 
@@ -132,7 +131,44 @@ mushrooms_renamed['season'] = mushrooms_renamed['season'].replace({
     'w': 'winter'
 })
 
+
+#filling out nulls
+cap_surface_set = {'fibrous', 'grooves', 'scaly', 'smooth', 'dry', 'shiny', 'leathery', 'silky', 'sticky', 'wrinkled', 'fleshy'}
+gill_spacing_set = {'close', 'distant', 'none'}
+ring_type_set = {'cobwebby', 'evanescent', 'flaring', 'grooved', 'large', 'pendant', 'sheathing', 'zone', 'scaly', 'movable', 'none'}
+veil_type_set = {'partial', 'universal'}
+gill_attachment_set = {'adnate', 'adnexed', 'decurrent', 'free', 'sinuate', 'pores', 'none'}
+stem_root_set = {'bulbous', 'swollen', 'club', 'cup', 'equal', 'rhizomorphs', 'rooted'}
+
+# Function to fill nulls only
+def fill_null_with_random(column, value_set):
+    mushrooms_renamed[column] = mushrooms_renamed[column].apply(
+        lambda x: x if pd.notnull(x) else random.choice(list(value_set))
+    )
+
+# Apply the function for each column
+fill_null_with_random('cap-surface', cap_surface_set)
+fill_null_with_random('gill-spacing', gill_spacing_set)
+fill_null_with_random('ring-type', ring_type_set)
+fill_null_with_random('veil-type', veil_type_set)
+fill_null_with_random('gill-attachment', gill_attachment_set)
+fill_null_with_random('stem-root', stem_root_set)
+
+
+#output file
 mushrooms_renamed.to_csv('mushrooms_v2.csv', index=False)
 
 
-            
+
+#check there are no nulls
+null_columns_set = set()       
+null_rows = mushrooms_renamed[mushrooms_renamed.isnull().any(axis=1)]
+for index, row in null_rows.iterrows():
+    null_columns = row[row.isnull()].index.tolist()  # Get the columns with null values
+    null_columns_set.update(null_columns)  # Add the columns to the set (automatically handles duplicates)
+
+# Print the unique columns with null values
+print(f"Columns with null values: {null_columns_set}")
+
+# Optionally, count the number of rows with null values
+print(f"Number of rows with null values: {len(null_rows)}")
