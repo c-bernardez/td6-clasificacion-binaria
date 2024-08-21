@@ -1,0 +1,195 @@
+---
+title: "TP1"
+author: "Micaela Oliva, Camila Bernardez"
+date: "2024-08-15"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio 1
+
+El dataset elegido tiene como origen:\
+
+<https://www.kaggle.com/datasets/vishalpnaik/mushroom-classification-edible-or-poisonous?resource=download&select=mushroom.csv>
+
+
+
+```{r}
+mushrooms <- read.csv("mushrooms_v2.csv")
+```
+
+Es un dataset que busca clasificar si un hongo es comestible (edible) o no (poisonous). Para considerarlo, el dataset esta compuesto de 16 variables, de las cuáles:
+
+- \texttt{class} (variable categórica binaria): indica si un hongo es comestible o no, y es lo que buscamos predecir.
+    - edible (1)
+    - poisonous (0)
+
+  ```{r}
+  unique(mushrooms$class)
+  ```
+
+- \texttt{cap-diameter} (variable numérica): indica el diametro del sombrero del hongo en cm.
+
+
+- \texttt{cap-shape} (variable categórica): indica el forma del sombrero del hongo.
+    - 'bell' 
+    - 'conical'
+    - 'convex'
+    - 'flat'
+    - 'sunken'
+    - 'spherical'
+    - 'others'
+
+    ```{r}
+    unique(mushrooms$cap.shape)
+    ```
+  
+- \texttt{cap-surface} (variable categórica): indica la textura de la superficie del sombrero del hongo.
+    - 'fibrous' 
+    - 'grooves' 
+    - 'scaly'
+    - 'smooth'
+    - 'dry'
+    - 'shiny'
+    - 'leathery'
+    - 'silky'
+    - 'sticky'
+    - 'wrinkled'
+    - 'fleshy'
+    - '' # 
+
+    ```{r}
+    unique(mushrooms$cap.surface)
+    ```
+    
+- \texttt{cap-color} (variable categórica): indica el color del sombrero del hongo.
+    - 'brown'
+    - 'orange'
+    - 'buff'
+    - 'gray'
+    - 'green'
+    - 'pink'
+    - 'purple'
+    - 'red'
+    - 'white'
+    - 'yellow'
+    - 'blue'
+    - 'black'
+
+    ```{r}
+    unique(mushrooms$cap.color)
+    ```
+
+- \texttt{does-bruise-or-bleed} (variable categórica binaria -> true/false): indica si el hongo al lesionarse presenta moratones o sangrado.
+    - 'true'
+    - 'false'
+
+    ```{r}
+    unique(mushrooms$does.bruise.or.bleed)
+    ```
+
+- \texttt{gill-attachment} (variable categórica): indica cómo las láminas del hongo se adhieren al pie.
+    - 'adnate'
+    - 'adnexed'
+    - 'decurrent'
+    - 'free'
+    - 'sinuate'
+    - 'pores'
+    - 'none' #
+    - '' #
+
+    ```{r}
+    unique(mushrooms$gill.attachment)
+    ```
+    
+- \texttt{gill-spacing} (variable categórica): indica la separación entre las láminas del hongo.
+    - 'close'
+    - 'distant'
+    - 'none' #
+    - '' #
+
+    ```{r}
+    unique(mushrooms$gill.spacing)
+    ```
+
+- \texttt{stem-heigh} (variable numérica): indica la altura del pie del hongo en cm.
+
+- \texttt{stem-width} (variable numérica): indica el ancho del pie del hongo en mm.
+
+- \texttt{stem-root} (variable categórica): indica la estructura de la raíz del pie del hongo.
+    - 'bulbous'
+    - 'swollen'
+    - 'club'
+    - 'cup' #extra
+    - 'equal' #extra
+    - 'rhizomorphs'#extra
+    - 'rooted' 
+    - '' #falta es f, supongo que es none
+    - '' #
+    ```{r}
+    unique(mushrooms$stem.root)
+    ```
+
+- \texttt{veil-type} (variable categórica): indica el tipo de velo que cubre las láminas del hongo.
+    - 'partial' #extra
+    - 'universal'
+    - '' #
+    ```{r}
+    unique(mushrooms$veil.type)
+    ```
+
+- \texttt{has-ring} (variable categórica binaria -> true/false): indica si esta presente un anillo en el hongo o no.
+    - 'true'
+    - 'false'
+
+    ```{r}
+    unique(mushrooms$has.ring)
+    ```
+
+- \texttt{ring-type} (variable categórica): indica el tipo del anillo presente en el hongo.
+    - 'cobwebby' #extra 
+    - 'evanescent'
+    - 'flaring'
+    - 'grooved'
+    - 'large'
+    - 'pendant'
+    - 'sheathing', #extra
+    - 'zone'
+    - 'scaly' #extra
+    - 'movable' 
+    - 'none'
+    - 'unknown' #extra
+    - ''
+
+    ```{r}
+    unique(mushrooms$ring.type)
+    ```
+
+- \texttt{habitat} (variable categórica): indica el ambiente en el cual el hongo fue encontrado.
+    - 'grasses' 
+    - 'leaves' 
+    - 'meadows'
+    - 'paths'
+    - 'heaths'
+    - 'urban'
+    - 'waste'
+    - 'woods'
+
+    ```{r}
+    unique(mushrooms$habitat)
+    ```
+
+- \texttt{season} (variable categórica): indica la estación en la cual el hongo es comunmente observado.
+    - 'spring' 
+    - 'summer'
+    - 'autumn'
+    - 'winter'
+
+    ```{r}
+    unique(mushrooms$season)
+    ```
+
