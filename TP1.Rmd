@@ -1,5 +1,5 @@
 ---
-title: "TP1"
+title: "TP1: Clasificación binaria - Predicción de la comestibilidad de hongos"
 author: "Micaela Oliva, Camila Bernardez"
 date: "2024-08-15"
 output:
@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Ejercicio 1
+## Ejercicio 1: Introducción al problema
 
 El dataset elegido tiene como origen:\
 
@@ -193,3 +193,199 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     unique(mushrooms$season)
     ```
 
+Decidimos elegir este conjunto de datos en particular para el uso de árboles de decisión, ya que contiene variables númericas y categóricas, tanto binarias como multiclase. 
+
+
+## Ejercicio 2: Preparación de los datos
+
+**Carga del conjunto de datos y realizamiento del preprocesamiento necesario**
+
+**Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
+
+Para empezar, veamos cuantos valores tenemos que son NA, none o vacíos/missing para cada una de las variables:
+
+```{r}
+# class
+missing_count_class <- sum(
+  is.na(mushrooms$class) |
+    mushrooms$class == "none" |
+    mushrooms$class == "",
+    na.rm = TRUE
+)
+print(paste("class: ", missing_count_class))
+
+# cap-diameter
+missing_count_cap_diameter <- sum(
+  is.na(mushrooms$cap.diameter) |
+    mushrooms$cap.diameter == "none" |
+    mushrooms$cap.diameter == "",
+    na.rm = TRUE
+)
+print(paste("cap-diameter: ", missing_count_cap_diameter))
+
+# cap-shape
+missing_count_cap_shape <- sum(
+  is.na(mushrooms$cap.shape) |
+    mushrooms$cap.shape == "none" |
+    mushrooms$cap.shape == "",
+    na.rm = TRUE
+)
+print(paste("cap-shape: ", missing_count_cap_shape))
+
+# cap-surface
+missing_count_cap_surface <- sum(
+  is.na(mushrooms$cap.surface) |
+    mushrooms$cap.surface == "none" |
+    mushrooms$cap.surface == "",
+    na.rm = TRUE
+)
+print(paste("cap-surface: ", missing_count_cap_surface))
+
+# cap-color
+missing_count_cap_color <- sum(
+  is.na(mushrooms$cap.color) |
+    mushrooms$cap.color == "none" |
+    mushrooms$cap.color == "",
+    na.rm = TRUE
+)
+print(paste("cap-color: ", missing_count_cap_color))
+
+# does-bruise-or-bleed
+missing_count_bruise_or_bleed <- sum(
+  is.na(mushrooms$does.bruise.or.bleed) |
+    mushrooms$does.bruise.or.bleed == "none" |
+    mushrooms$does.bruise.or.bleed == "",
+    na.rm = TRUE
+)
+print(paste("does-bruise-or-bleed: ", missing_count_bruise_or_bleed))
+
+# gill-attachment
+missing_count_gill_attachment <- sum(
+  is.na(mushrooms$gill.attachment) |
+    mushrooms$gill.attachment == "none" |
+    mushrooms$gill.attachment == "",
+    na.rm = TRUE
+)
+print(paste("gill-attachment: ", missing_count_gill_attachment))
+
+# gill-spacing
+missing_count_gill_spacing <- sum(
+  is.na(mushrooms$gill.spacing) |
+    mushrooms$gill.spacing == "none" |
+    mushrooms$gill.spacing == "",
+    na.rm = TRUE
+)
+print(paste("gill-spacing: ", missing_count_gill_spacing))
+
+# stem-heigh
+missing_count_stem_height <- sum(
+  is.na(mushrooms$stem.height) |
+    mushrooms$stem.height == "none" |
+    mushrooms$stem.height == "",
+    na.rm = TRUE
+)
+print(paste("stem-heigh: ", missing_count_stem_height))
+
+# stem-width
+missing_count_stem_width <- sum(
+  is.na(mushrooms$stem.width) |
+    mushrooms$stem.width == "none" |
+    mushrooms$stem.width == "",
+    na.rm = TRUE
+)
+print(paste("stem-width: ", missing_count_stem_width))
+
+# stem-root
+missing_count_stem_root <- sum(
+  is.na(mushrooms$stem.root) |
+    mushrooms$stem.root == "none" |
+    mushrooms$stem.root == "",
+    na.rm = TRUE
+)
+print(paste("stem-root: ", missing_count_stem_root))
+
+# veil-type
+missing_count_veil_type <- sum(
+  is.na(mushrooms$veil.type) |
+    mushrooms$veil.type == "none" |
+    mushrooms$veil.type == "",
+    na.rm = TRUE
+)
+print(paste("veil-type: ", missing_count_veil_type))
+
+# has-ring
+missing_count_has_ring <- sum(
+  is.na(mushrooms$has.ring) |
+    mushrooms$has.ring == "none" |
+    mushrooms$has.ring == "",
+    na.rm = TRUE
+)
+print(paste("has-ring: ", missing_count_has_ring))
+
+# ring-type
+missing_count_ring_type <- sum(
+  is.na(mushrooms$ring.type) |
+    mushrooms$ring.type == "none" |
+    mushrooms$ring.type == "",
+    na.rm = TRUE
+)
+print(paste("ring-type: ", missing_count_ring_type))
+
+# habitat
+missing_count_habitat <- sum(
+  is.na(mushrooms$habitat) |
+    mushrooms$habitat == "none" |
+    mushrooms$habitat == "",
+    na.rm = TRUE
+)
+print(paste("habitat: ", missing_count_habitat))
+
+# season
+missing_count_season <- sum(
+  is.na(mushrooms$season) |
+    mushrooms$season == "none" |
+    mushrooms$season == "",
+    na.rm = TRUE
+)
+print(paste("season: ", missing_count_season))
+
+```
+
+```{r}
+missing_values <- colSums(is.na(mushrooms))
+
+par(mfrow = c(1, 1))
+
+missing_values <- data.frame(
+  Variable = c("class", "cap-diameter", "cap-shape", "cap-surface",
+               "cap-color", "does-bruise-or-bleed", "gill-attachment",
+               "gill-spacing", "stem-height", "stem-width", "stem-root",
+               "veil-type", "has-ring", "ring-type", "habitat", "season"),
+  MissingCount = c(missing_count_class, missing_count_cap_diameter,
+                   missing_count_cap_shape, missing_count_cap_surface,
+                   missing_count_cap_color, missing_count_bruise_or_bleed,
+                   missing_count_gill_attachment, missing_count_gill_spacing,
+                   missing_count_stem_height, missing_count_stem_width,
+                   missing_count_stem_root, missing_count_veil_type,
+                   missing_count_has_ring, missing_count_ring_type,
+                   missing_count_habitat, missing_count_season)
+)
+
+
+
+# Plot missing values
+barplot(
+  missing_values$MissingCount,
+  names.arg = missing_values$Variable,
+  las = 2,  # Rotate labels for better readability
+  col = "forestgreen",
+  main = "Count of Missing Values for Each Variable",
+  xlab = "Variable",
+  ylab = "Missing Count",
+  ylim = c(0, max(missing_values$MissingCount) + 10000)  # Set y-axis limit
+)
+
+par(mfrow = c(1, 1))
+```
+
+## Ejercicio 3: Construcción de un árbol de decisión básico
