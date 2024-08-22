@@ -10,27 +10,19 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Ejercicio 1: Introducción al problema
+# Ejercicio 1: Introducción al problema
 
 El dataset elegido tiene como origen:\
 
 <https://www.kaggle.com/datasets/vishalpnaik/mushroom-classification-edible-or-poisonous?resource=download&select=mushroom.csv>
 
 
-
-```{r}
-mushrooms <- read.csv("mushrooms_v2.csv")
-```
-
 Es un dataset que busca clasificar si un hongo es comestible (edible) o no (poisonous). Para considerarlo, el dataset esta compuesto de 16 variables, de las cuáles:
 
 - \texttt{class} (variable categórica binaria): indica si un hongo es comestible o no, y es lo que buscamos predecir.
-    - edible (1)
-    - poisonous (0)
+    - edible 
+    - poisonous
 
-  ```{r}
-  unique(mushrooms$class)
-  ```
 
 - \texttt{cap-diameter} (variable numérica): indica el diametro del sombrero del hongo en cm.
 
@@ -44,9 +36,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'spherical'
     - 'others'
 
-    ```{r}
-    unique(mushrooms$cap.shape)
-    ```
   
 - \texttt{cap-surface} (variable categórica): indica la textura de la superficie del sombrero del hongo.
     - 'fibrous' 
@@ -62,9 +51,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'fleshy'
     - '' # 
 
-    ```{r}
-    unique(mushrooms$cap.surface)
-    ```
     
 - \texttt{cap-color} (variable categórica): indica el color del sombrero del hongo.
     - 'brown'
@@ -80,17 +66,11 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'blue'
     - 'black'
 
-    ```{r}
-    unique(mushrooms$cap.color)
-    ```
 
 - \texttt{does-bruise-or-bleed} (variable categórica binaria -> true/false): indica si el hongo al lesionarse presenta moratones o sangrado.
     - 'true'
     - 'false'
 
-    ```{r}
-    unique(mushrooms$does.bruise.or.bleed)
-    ```
 
 - \texttt{gill-attachment} (variable categórica): indica cómo las láminas del hongo se adhieren al pie.
     - 'adnate'
@@ -102,9 +82,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'none' #
     - '' #
 
-    ```{r}
-    unique(mushrooms$gill.attachment)
-    ```
     
 - \texttt{gill-spacing} (variable categórica): indica la separación entre las láminas del hongo.
     - 'close'
@@ -112,13 +89,13 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'none' #
     - '' #
 
-    ```{r}
-    unique(mushrooms$gill.spacing)
-    ```
 
 - \texttt{stem-heigh} (variable numérica): indica la altura del pie del hongo en cm.
 
+
 - \texttt{stem-width} (variable numérica): indica el ancho del pie del hongo en mm.
+
+
 
 - \texttt{stem-root} (variable categórica): indica la estructura de la raíz del pie del hongo.
     - 'bulbous'
@@ -130,25 +107,15 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'rooted' 
     - '' #falta es f, supongo que es none
     - '' #
-    ```{r}
-    unique(mushrooms$stem.root)
-    ```
 
 - \texttt{veil-type} (variable categórica): indica el tipo de velo que cubre las láminas del hongo.
     - 'partial' #extra
     - 'universal'
     - '' #
-    ```{r}
-    unique(mushrooms$veil.type)
-    ```
 
 - \texttt{has-ring} (variable categórica binaria -> true/false): indica si esta presente un anillo en el hongo o no.
     - 'true'
     - 'false'
-
-    ```{r}
-    unique(mushrooms$has.ring)
-    ```
 
 - \texttt{ring-type} (variable categórica): indica el tipo del anillo presente en el hongo.
     - 'cobwebby' #extra 
@@ -165,9 +132,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'unknown' #extra
     - ''
 
-    ```{r}
-    unique(mushrooms$ring.type)
-    ```
 
 - \texttt{habitat} (variable categórica): indica el ambiente en el cual el hongo fue encontrado.
     - 'grasses' 
@@ -179,9 +143,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'waste'
     - 'woods'
 
-    ```{r}
-    unique(mushrooms$habitat)
-    ```
 
 - \texttt{season} (variable categórica): indica la estación en la cual el hongo es comunmente observado.
     - 'spring' 
@@ -189,203 +150,161 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'autumn'
     - 'winter'
 
-    ```{r}
-    unique(mushrooms$season)
-    ```
 
-Decidimos elegir este conjunto de datos en particular para el uso de árboles de decisión, ya que contiene variables númericas y categóricas, tanto binarias como multiclase. 
+Para resumir, la variable class es una variable categórica binaria que indica si un hongo es comestible (edible) o venenoso (poisonous) pra poder hacer una clasificación binaria. 
+Asimismo, el conjunto de datos tiene varias variables categóricas (cap-shape, cap-surface, cap-color, entre otras) y variables numéricas como cap-diameter, stem-heigh, y stem-width, cumpliendo así la inclusión de ambos tipos de atributos.
+Las variables categóricas están representadas como palabras (e.g., cap-shape con valores como 'bell', 'conical', etc.). Además, hicimos un preprocesamiento de los datos tal que tengamos menos de 50.000 observaciones, pues el dataset original consistía de más de 60K de datos, y que además no tengan valores nulos.
+Usamos árboles de decisión porque son capaces de manejar tanto variables categóricas como numéricas, permitiendo identificar de manera eficaz patrones complejos y no lineales en los datos. Además, los árboles de decisión pueden dividir los datos en función de múltiples atributos, 
+lo que es útil cuando tenemos varias características relevantes, como en este caso, para clasificar hongos entre comestibles y venenosos.
 
 
 ## Ejercicio 2: Preparación de los datos
 
-**Carga del conjunto de datos y realizamiento del preprocesamiento necesario**
+
+**Carga del conjunto de datos y realizamiento del preprocesamiento**
+
+```{r}
+mushrooms <- read.csv('mushrooms_small.csv')
+
+table(is.na(mushrooms)) #verificamos que no hay valores nulos
+nrow(mushrooms) #verificamos que hay menos de 50.000 observaciones
+```
+
+Como los datos ya se encuentran sampleados (menos de 50.000 observaciones) y sin valores null, para preprocesarlos encargaremos de:
+  * cambiar los valores de las variables categóricas por palabras enteras en vez de letras.
+  * quitar columnas que dependen de otras.
+
+La fuente del dataset especifica que las columnas 'gill-color', 'stem-surface', 'stem-color', 'veil-color' y 'spore-print-color' dependen de 'cap-color' y 'cap-surface', así que decidimos eliminar estas columnas correlacionadas para disminuir al máximo posible el ruido, que podría distorsionar nuestra clasificación binaria.
+
+```{r}
+mushrooms <- mushrooms[, !(names(mushrooms) %in% c("gill.color", "stem.surface", "stem.color", "veil.color", "spore.print.color"))]
+ncol(mushrooms)
+```
+
+Las variables categóricas toman valores de letras que pueden ser confusos, ya que no siempre reflejan de manera clara la palabra que representan (por ejemplo 'k' se utiliza en lugar de 'black'), y pueden repetirse entre columnas sin necesariamente significar lo mismo. Para que el manejo de los datos y las leyendas de los gráficos sean más claras decidimos reemplazarlas por las palabras correspondientes.
+
+```{r, include='FALSE'}
+#install.packages("dplyr")
+library(dplyr)
+
+mushrooms_renamed <- mushrooms %>%
+  mutate(
+    class = recode(class, 'e' = 'edible', 'p' = 'poisonous'),
+    cap.shape = recode(cap.shape, 'b' = 'bell', 'c' = 'conical', 'x' = 'convex', 'f' = 'flat', 's' = 'sunken', 'p' = 'spherical', 'o' = 'others'),
+    cap.surface = recode(cap.surface, 'i' = 'fibrous', 'f' = 'fibrous', 'g' = 'grooves', 'y' = 'scaly', 's' = 'smooth', 'd' = 'dry', 'h' = 'shiny', 'l' = 'leathery', 'k' = 'silky', 't' = 'sticky', 'w' = 'wrinkled', 'e' = 'fleshy',),
+    cap.color = recode(cap.color, 'n' = 'brown', 'b' = 'buff', 'g' = 'gray', 'r' = 'green', 'p' = 'pink', 'u' = 'purple', 'e' = 'red', 'w' = 'white', 'y' = 'yellow', 'l' = 'blue', 'o' = 'orange', 'k' = 'black'),
+    does.bruise.or.bleed = recode(does.bruise.or.bleed, 't' = 'true', 'f' = 'false'),
+    gill.attachment = recode(gill.attachment, 'a' = 'adnate', 'x' = 'adnexed', 'd' = 'decurrent', 'e' = 'free', 's' = 'sinuate', 'p' = 'pores', 'f' = 'none', '?' = 'unknown'),
+    gill.spacing = recode(gill.spacing, 'c' = 'close', 'd' = 'distant', 'f' = 'none'),
+    stem.root = recode(stem.root, 'b' = 'bulbous', 's' = 'swollen', 'c' = 'club', 'u' = 'cup', 'e' = 'equal', 'z' = 'rhizomorphs', 'r' = 'rooted'),
+    veil.type = recode(veil.type, 'p' = 'partial', 'u' = 'universal'),
+    has.ring = recode(has.ring, 't' = 'true', 'f' = 'false'),
+    ring.type = recode(ring.type, 'c' = 'cobwebby', 'e' = 'evanescent', 'r' = 'flaring', 'g' = 'grooved', 'l' = 'large', 'p' = 'pendant', 's' = 'sheathing', 'z' = 'zone', 'y' = 'scaly', 'm' = 'movable', 'f' = 'none', '?' = 'unknown'),
+    habitat = recode(habitat, 'g' = 'grasses', 'l' = 'leaves', 'm' = 'meadows', 'p' = 'paths', 'h' = 'heaths', 'u' = 'urban', 'w' = 'waste', 'd' = 'woods'),
+    season = recode(season, 's' = 'spring', 'u' = 'summer', 'a' = 'autumn', 'w' = 'winter')
+  )
+```
+
+```{r}
+head(mushrooms_renamed)
+```
+
 
 **Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
 
-Para empezar, veamos cuantos valores tenemos que son NA, none o vacíos/missing para cada una de las variables:
+Inicialmente buscamos obtener estadísticas sencillas con el método $\texttt{summary}$, pero primero veamos de qué tipos de datos son nuestras variables. Encontramos solo dos tipos de datos en nuestro dataset: 3 variables de tipo $\texttt{numeric}$ **cap.diameter**, **stem.height** y **stem.width** y 13 categóricas de tipo $\texttt{character}$. Además, 3 de las 13 categóricas son binarias, incluyendo a nuestra variable a predecir **class**, que especifica si el hongo en cuestión es o no comestible ('edible' o 'poisonous').
 
 ```{r}
-# class
-missing_count_class <- sum(
-  is.na(mushrooms$class) |
-    mushrooms$class == "none" |
-    mushrooms$class == "",
-    na.rm = TRUE
-)
-print(paste("class: ", missing_count_class))
-
-# cap-diameter
-missing_count_cap_diameter <- sum(
-  is.na(mushrooms$cap.diameter) |
-    mushrooms$cap.diameter == "none" |
-    mushrooms$cap.diameter == "",
-    na.rm = TRUE
-)
-print(paste("cap-diameter: ", missing_count_cap_diameter))
-
-# cap-shape
-missing_count_cap_shape <- sum(
-  is.na(mushrooms$cap.shape) |
-    mushrooms$cap.shape == "none" |
-    mushrooms$cap.shape == "",
-    na.rm = TRUE
-)
-print(paste("cap-shape: ", missing_count_cap_shape))
-
-# cap-surface
-missing_count_cap_surface <- sum(
-  is.na(mushrooms$cap.surface) |
-    mushrooms$cap.surface == "none" |
-    mushrooms$cap.surface == "",
-    na.rm = TRUE
-)
-print(paste("cap-surface: ", missing_count_cap_surface))
-
-# cap-color
-missing_count_cap_color <- sum(
-  is.na(mushrooms$cap.color) |
-    mushrooms$cap.color == "none" |
-    mushrooms$cap.color == "",
-    na.rm = TRUE
-)
-print(paste("cap-color: ", missing_count_cap_color))
-
-# does-bruise-or-bleed
-missing_count_bruise_or_bleed <- sum(
-  is.na(mushrooms$does.bruise.or.bleed) |
-    mushrooms$does.bruise.or.bleed == "none" |
-    mushrooms$does.bruise.or.bleed == "",
-    na.rm = TRUE
-)
-print(paste("does-bruise-or-bleed: ", missing_count_bruise_or_bleed))
-
-# gill-attachment
-missing_count_gill_attachment <- sum(
-  is.na(mushrooms$gill.attachment) |
-    mushrooms$gill.attachment == "none" |
-    mushrooms$gill.attachment == "",
-    na.rm = TRUE
-)
-print(paste("gill-attachment: ", missing_count_gill_attachment))
-
-# gill-spacing
-missing_count_gill_spacing <- sum(
-  is.na(mushrooms$gill.spacing) |
-    mushrooms$gill.spacing == "none" |
-    mushrooms$gill.spacing == "",
-    na.rm = TRUE
-)
-print(paste("gill-spacing: ", missing_count_gill_spacing))
-
-# stem-heigh
-missing_count_stem_height <- sum(
-  is.na(mushrooms$stem.height) |
-    mushrooms$stem.height == "none" |
-    mushrooms$stem.height == "",
-    na.rm = TRUE
-)
-print(paste("stem-heigh: ", missing_count_stem_height))
-
-# stem-width
-missing_count_stem_width <- sum(
-  is.na(mushrooms$stem.width) |
-    mushrooms$stem.width == "none" |
-    mushrooms$stem.width == "",
-    na.rm = TRUE
-)
-print(paste("stem-width: ", missing_count_stem_width))
-
-# stem-root
-missing_count_stem_root <- sum(
-  is.na(mushrooms$stem.root) |
-    mushrooms$stem.root == "none" |
-    mushrooms$stem.root == "",
-    na.rm = TRUE
-)
-print(paste("stem-root: ", missing_count_stem_root))
-
-# veil-type
-missing_count_veil_type <- sum(
-  is.na(mushrooms$veil.type) |
-    mushrooms$veil.type == "none" |
-    mushrooms$veil.type == "",
-    na.rm = TRUE
-)
-print(paste("veil-type: ", missing_count_veil_type))
-
-# has-ring
-missing_count_has_ring <- sum(
-  is.na(mushrooms$has.ring) |
-    mushrooms$has.ring == "none" |
-    mushrooms$has.ring == "",
-    na.rm = TRUE
-)
-print(paste("has-ring: ", missing_count_has_ring))
-
-# ring-type
-missing_count_ring_type <- sum(
-  is.na(mushrooms$ring.type) |
-    mushrooms$ring.type == "none" |
-    mushrooms$ring.type == "",
-    na.rm = TRUE
-)
-print(paste("ring-type: ", missing_count_ring_type))
-
-# habitat
-missing_count_habitat <- sum(
-  is.na(mushrooms$habitat) |
-    mushrooms$habitat == "none" |
-    mushrooms$habitat == "",
-    na.rm = TRUE
-)
-print(paste("habitat: ", missing_count_habitat))
-
-# season
-missing_count_season <- sum(
-  is.na(mushrooms$season) |
-    mushrooms$season == "none" |
-    mushrooms$season == "",
-    na.rm = TRUE
-)
-print(paste("season: ", missing_count_season))
-
+str(mushrooms_renamed)
 ```
+Comenzamos por analizar la distribución de algunas variables. En primer lugar nos interesa análizar si tenemos una proporción más o menos pareja de los valores que toma **class**. Siendo que hay aproximadamente 44 observaciones de 'edible' para cada 55 observaciones de 'poisonous' nos aseguramos una buena distribución de valores para que el modelo tenga suficientes ejemplos de ambas clases para aprender y generalizar adecuadamente.
 
 ```{r}
-missing_values <- colSums(is.na(mushrooms))
+num_edible <- sum(mushrooms_renamed$class == 'edible')
+num_poisonous <- sum(mushrooms_renamed$class == 'poisonous')
 
-par(mfrow = c(1, 1))
+prop_edible <- num_edible/(nrow(mushrooms_renamed))
+prop_poisonous <- num_poisonous/(nrow(mushrooms_renamed))
 
-missing_values <- data.frame(
-  Variable = c("class", "cap-diameter", "cap-shape", "cap-surface",
-               "cap-color", "does-bruise-or-bleed", "gill-attachment",
-               "gill-spacing", "stem-height", "stem-width", "stem-root",
-               "veil-type", "has-ring", "ring-type", "habitat", "season"),
-  MissingCount = c(missing_count_class, missing_count_cap_diameter,
-                   missing_count_cap_shape, missing_count_cap_surface,
-                   missing_count_cap_color, missing_count_bruise_or_bleed,
-                   missing_count_gill_attachment, missing_count_gill_spacing,
-                   missing_count_stem_height, missing_count_stem_width,
-                   missing_count_stem_root, missing_count_veil_type,
-                   missing_count_has_ring, missing_count_ring_type,
-                   missing_count_habitat, missing_count_season)
-)
-
-
-
-# Plot missing values
-barplot(
-  missing_values$MissingCount,
-  names.arg = missing_values$Variable,
-  las = 2,  # Rotate labels for better readability
-  col = "forestgreen",
-  main = "Count of Missing Values for Each Variable",
-  xlab = "Variable",
-  ylab = "Missing Count",
-  ylim = c(0, max(missing_values$MissingCount) + 10000)  # Set y-axis limit
-)
-
-par(mfrow = c(1, 1))
+print(paste("Edible:", num_edible, "(",round(prop_edible * 100, 2), "%)"))
+print(paste("Poisonous:", num_poisonous, "(",round(prop_poisonous * 100, 2), "%)"))
 ```
+
+MAS VARIABLES CATEGORICAS (histogramas?)
+
+```{r}
+selected_columns <- mushrooms_renamed[, c("cap.diameter", "stem.height", "stem.width")]
+summary(selected_columns)
+```
+BOXPLOT?
+
+Por último nos interesa analizar la correlación entre las variables, principalmente para saber si hay algunas variables más correlacionadas con nuestra variable objetivo que otras. Esto significaría que es posible que un modelo menos complejo (de menos variables) sea suficiente para predecirla.
+
+```{r}
+#install.packages("PerformanceAnalytics")
+library("PerformanceAnalytics")
+
+mushrooms_renamed[] <- lapply(mushrooms_renamed, function(x) if (is.character(x)) as.factor(x) else x)
+mushrooms_numeric <- data.frame(lapply(mushrooms_renamed, function(x) if (is.factor(x)) as.numeric(x) else x))
+
+#chart.Correlation(mushrooms_numeric, histogram=TRUE, pch=19)
+```
+
 
 ## Ejercicio 3: Construcción de un árbol de decisión básico
+
+```{r}
+mushrooms_renamed$cap.shape <- as.factor(mushrooms_renamed$cap.shape)
+mushrooms_renamed$cap.surface <- as.factor(mushrooms_renamed$cap.surface)
+mushrooms_renamed$cap.color <- as.factor(mushrooms_renamed$cap.color)
+mushrooms_renamed$gill.attachment <- as.factor(mushrooms_renamed$gill.attachment)
+mushrooms_renamed$gill.spacing <- as.factor(mushrooms_renamed$gill.spacing)
+mushrooms_renamed$stem.root <- as.factor(mushrooms_renamed$stem.root)
+mushrooms_renamed$ring.type <- as.factor(mushrooms_renamed$ring.type)
+mushrooms_renamed$veil.type <- as.factor(mushrooms_renamed$veil.type)
+mushrooms_renamed$habitat <- as.factor(mushrooms_renamed$habitat)
+mushrooms_renamed$season <- as.factor(mushrooms_renamed$season)
+
+mushrooms_renamed$class <- as.factor(mushrooms_renamed$class)
+mushrooms_renamed$does.bruise.or.bleed <- as.factor(mushrooms_renamed$does.bruise.or.bleed)
+mushrooms_renamed$has.ring <- as.factor(mushrooms_renamed$has.ring)
+```
+
+
+```{r}
+library(dplyr)
+set.seed(42) #semilla para replicabilidad
+
+n <- nrow(mushrooms_renamed)
+indices <- sample(1:n) #'mezclamos' primero el orden de las filas, para luego solo tomar de la 1:70%, 70%-85% y 85%-100%
+train_size <- floor(0.7 * n)
+valid_size <- floor(0.15 * n)
+
+train_indices <- indices[1:train_size]
+valid_indices <- indices[(train_size + 1):(train_size + valid_size)]
+test_indices <- indices[(train_size + valid_size + 1):n]
+
+#creamos los subsets de datos
+train_set <- mushrooms_renamed[train_indices, ]
+valid_set <- mushrooms_renamed[valid_indices, ]
+test_set <- mushrooms_renamed[test_indices, ]
+```
+
+
+```{r}
+library(rpart)
+
+tree_model <- rpart(class ~ ., 
+                    data = train_set, 
+                    method = "class")
+```
+
+```{r}
+library(rpart.plot)
+
+rpart.plot(tree_model)
+```
+
+## Ejercicio 4: Evaluación del árbol de decisión básico
+
+
