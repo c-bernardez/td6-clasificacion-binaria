@@ -307,4 +307,134 @@ rpart.plot(tree_model)
 
 ## Ejercicio 4: Evaluación del árbol de decisión básico
 
+**Matriz de confusión**
 
+```{r}
+# Instalacion y/o importe de las librerias
+# install.packages('caret')
+library(caret)
+```
+
+```{r}
+# Predicciones de probabilidades y de clases
+pred_prob <- predict(tree_model, test_set, type = "prob")  # Probabilidades predichas
+pred_class <- predict(tree_model, test_set, type = "class")  # Clases predichas
+```
+Hacemos la Matriz de Confusión:
+```{r}
+conf_matrix <- confusionMatrix(pred_class, test_set$class)
+print("Matriz de Confusión:")
+print(conf_matrix$table)
+print(t(conf_matrix$table)) # traspongo para que sea como visto en clase
+```
+Lo que obtenemos es:
+
+* $TP = 2075$: Es un True Positive que dice la cantidad de instancias donde el modelo predijo \texttt{edible} y la clase verdaderamente valia edible.
+* $FP = 613$: Es un False Positive que dice la cantidad de instancias donde el modelo predijo edible, pero la clase verdaderamente valia poisonous.
+* $FN = 1008$: Es un False Negative que dice la cantidad de instancias donde el modelo predijo poisonous, pero la clase verdaderamente valia edible.
+* $TN = 3215$: Es un True Negative que dice la cantidad de instancias donde el modelo predijo poisonous y la clase clase verdaderamente valia poisonous.
+
+Por lo tanto, usamos Accuracy como una metrica de evaluacion si el resultado fue bueno:
+
+**Accuracy**
+
+Buscamos ver la proporcion de predicciones correctas (tanto positivas como negativas) de las predicciones totales.
+
+$$Accuracy = \frac{TP + TN}{P + N} =$$ 
+$$= \frac{TP + TN}{TP + FN + FP + TN} =$$
+$$= \frac{TP + TN}{TP + FN + FP + TN} =$$
+$$= \frac{2075 + 3215}{2075 + 1008 + 613 + 3215} =$$
+$$= \frac{5290}{6911} = 0.7654464$$ 
+
+En R:
+```{r}
+# 
+TP <- conf_matrix$table[1, 1]
+FP <- conf_matrix$table[1, 2]
+FN <- conf_matrix$table[2, 1]
+TN <- conf_matrix$table[2, 2]
+
+# Calculamos el accuracy
+Accuracy <- (TP + TN) / (TP + FN + FP + TN)
+Accuracy
+
+# Validacion
+conf_matrix$overall['Accuracy']
+```
+Esto significa que el modelo clasifica correctamente alrededor de 76.5% de las instancias.
+
+Lo que significa que en este caso $Error rate = 1 - Accuracy = 0.2345536$.
+
+Pero para considerar que las clases pueden llegar a estar desbalanceadas, usaremos Precision-Recall:
+
+**Precision and Recall**
+
+- Precision: 
+
+  Buscamos ver la proporcion de las instancias predichas de edible que verdaderamente valen edible.
+  $$Precision_{edible} = \frac{TP}{TP + FP} =$$
+  $$= \frac{2075}{2075 + 613} = 0.7719494$$
+
+  En R:
+  ```{r}
+  Precision <- TP/(TP + FP)
+  Precision
+
+  # Validacion
+  conf_matrix$byClass['Pos Pred Value']
+  ```
+  Esto significa que alrededor de 77.2% del tiempo cuando el modelo predice edible acierta.
+
+- Recall: 
+
+  Buscamos ver la proporcion de las instancias que verdaderamente valen edible que fueron correctamente predichas como edible.
+  $$Recall_{edible} = \frac{TP}{TP + FN} =$$
+  $$= \frac{2075}{2075 + 1008} = 0.6730457$$
+
+  En R:
+  ```{r}
+  Recall <- TP/(TP + FN)
+  Recall
+
+  # Validacion
+  conf_matrix$byClass['Sensitivity']
+  ```
+
+  Esto significa que alrededor de 67.3% el modelo identifica correctamente si los hongos son comestibles.
+  
+Pero, queremos una ponderacion conjunta de Precision y de Recall, por lo cual usaremos F1-Score.
+
+**F1-Score**
+
+$$F1-Score = \frac{2 * Precision * Recall}{Precision + Recall} =$$
+$$= \frac{2 * 0.7719494 * 0.6730457}{0.7719494 + 0.6730457} = 0.7191128$$
+
+En R:
+```{r}
+F1_score <- (2 * Precision * Recall)/(Precision + Recall)
+F1_score
+```
+
+Esto significa que el accuracy del modelo en predicir la clase edible es igual a $0.7191128$.
+
+**ROC-AUC Score**
+
+Buscamos ver que tan bien el modelo tiene la capacidad de separar las clases. 
+
+```{r}
+library(pROC)
+
+# Calculamos ROC curve
+roc_curve <- roc(test_set$class, pred_prob[, "edible"])
+
+#  AUC score
+auc_value <- auc(roc_curve)
+print(paste("AUC-ROC Score:", auc_value))
+
+# Plot de ROC curve
+plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2)
+```
+
+$$AUC-ROC = 0.7921915$$
+
+Esto significa que como $0.7921915 > 0.5$, el modelo se ejecuta mejor que hacer random guessing.
