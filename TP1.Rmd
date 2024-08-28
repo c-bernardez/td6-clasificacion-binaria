@@ -1,7 +1,7 @@
 ---
 title: "TP1: Clasificación binaria - Predicción de la comestibilidad de hongos"
 author: "Micaela Oliva, Camila Bernardez"
-date: "2024-08-15"
+# date: "`r Sys.Date()`"
 output:
   pdf_document: default
 ---
