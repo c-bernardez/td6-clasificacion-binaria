@@ -1,1 +1,1 @@
-# td6-clasificacion-binaria
+# :mushroom: TDVI - TP1: Clasificación binaria - Predicción de la comestibilidad de hongos :mushroom:
