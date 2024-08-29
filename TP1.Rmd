@@ -1,12 +1,13 @@
 ---
 title: "TP1: Clasificación binaria - Predicción de la comestibilidad de hongos"
 author: "Micaela Oliva, Camila Bernardez"
-# date: "`r Sys.Date()`"
 output:
   pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
-```{r setup, include=FALSE}
+```{r}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -151,17 +152,19 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'winter'
 
 
-Para resumir, la variable class es una variable categórica binaria que indica si un hongo es comestible (edible) o venenoso (poisonous) pra poder hacer una clasificación binaria. 
+Para resumir, la variable \texttt{class} es una variable categórica binaria que indica si un hongo es comestible (\texttt{edible}) o venenoso (\texttt{poisonous}) pra poder hacer una clasificación binaria. 
+
 Asimismo, el conjunto de datos tiene varias variables categóricas (cap-shape, cap-surface, cap-color, entre otras) y variables numéricas como cap-diameter, stem-heigh, y stem-width, cumpliendo así la inclusión de ambos tipos de atributos.
-Las variables categóricas están representadas como palabras (e.g., cap-shape con valores como 'bell', 'conical', etc.). Además, hicimos un preprocesamiento de los datos tal que tengamos menos de 50.000 observaciones, pues el dataset original consistía de más de 60K de datos, y que además no tengan valores nulos.
-Usamos árboles de decisión porque son capaces de manejar tanto variables categóricas como numéricas, permitiendo identificar de manera eficaz patrones complejos y no lineales en los datos. Además, los árboles de decisión pueden dividir los datos en función de múltiples atributos, 
-lo que es útil cuando tenemos varias características relevantes, como en este caso, para clasificar hongos entre comestibles y venenosos.
+
+Las variables categóricas están representadas como palabras (e.g. cap-shape con valores como 'bell', 'conical', etc.). Además, hicimos un preprocesamiento de los datos tal que tengamos menos de 50.000 observaciones, pues el dataset original consistía de más de 60K de datos, y que además no tengan valores nulos. ## HOWWW
+
+Usamos árboles de decisión porque son capaces de manejar tanto variables categóricas como numéricas, permitiendo identificar de manera eficaz patrones complejos y no lineales en los datos. Además, los árboles de decisión pueden dividir los datos en función de múltiples atributos, lo que es útil cuando tenemos varias características relevantes, como en este caso, para clasificar hongos entre comestibles y venenosos.
 
 
-## Ejercicio 2: Preparación de los datos
+# Ejercicio 2: Preparación de los datos
 
 
-**Carga del conjunto de datos y realizamiento del preprocesamiento**
+### **Carga del conjunto de datos y realizamiento del preprocesamiento**
 
 ```{r}
 mushrooms <- read.csv('mushrooms_small.csv')
@@ -170,7 +173,8 @@ table(is.na(mushrooms)) #verificamos que no hay valores nulos
 nrow(mushrooms) #verificamos que hay menos de 50.000 observaciones
 ```
 
-Como los datos ya se encuentran sampleados (menos de 50.000 observaciones) y sin valores null, para preprocesarlos encargaremos de:
+Como los datos ya se encuentran sampleados (menos de 50.000 observaciones) y sin valores null, para preprocesarlos nos encargaremos de:
+
   * cambiar los valores de las variables categóricas por palabras enteras en vez de letras.
   * quitar columnas que dependen de otras.
 
@@ -181,9 +185,9 @@ mushrooms <- mushrooms[, !(names(mushrooms) %in% c("gill.color", "stem.surface",
 ncol(mushrooms)
 ```
 
-Las variables categóricas toman valores de letras que pueden ser confusos, ya que no siempre reflejan de manera clara la palabra que representan (por ejemplo 'k' se utiliza en lugar de 'black'), y pueden repetirse entre columnas sin necesariamente significar lo mismo. Para que el manejo de los datos y las leyendas de los gráficos sean más claras decidimos reemplazarlas por las palabras correspondientes.
+Las variables categóricas toman valores de letras que pueden ser confusos, ya que no siempre reflejan de manera clara la palabra que representan (por ejemplo 'k' se utiliza en lugar de 'black'), y pueden repetirse entre columnas sin necesariamente significar lo mismo. Para que el manejo de los datos y las leyendas de los gráficos sean más claras decidimos reemplazarlas por las palabras correspondientes, especificadas anteriormente.
 
-```{r, include='FALSE'}
+```{r}
 #install.packages("dplyr")
 library(dplyr)
 
@@ -209,15 +213,14 @@ mushrooms_renamed <- mushrooms %>%
 head(mushrooms_renamed)
 ```
 
+### **Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
 
-**Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
-
-Inicialmente buscamos obtener estadísticas sencillas con el método $\texttt{summary}$, pero primero veamos de qué tipos de datos son nuestras variables. Encontramos solo dos tipos de datos en nuestro dataset: 3 variables de tipo $\texttt{numeric}$ **cap.diameter**, **stem.height** y **stem.width** y 13 categóricas de tipo $\texttt{character}$. Además, 3 de las 13 categóricas son binarias, incluyendo a nuestra variable a predecir **class**, que especifica si el hongo en cuestión es o no comestible ('edible' o 'poisonous').
+Primero veamos de qué tipos de datos son nuestras variables. Encontramos solo dos tipos de datos en nuestro dataset: 3 variables de tipo $\texttt{numeric}$ '(cap.diameter', 'stem.heigh' y 'stem.width') y 13 categóricas de tipo $\texttt{character}$. Además, 3 de las 13 categóricas son binarias, incluyendo a nuestra variable a predecir 'class', que especifica si el hongo en cuestión es o no comestible ('edible' o 'poisonous').
 
 ```{r}
 str(mushrooms_renamed)
 ```
-Comenzamos por analizar la distribución de algunas variables. En primer lugar nos interesa análizar si tenemos una proporción más o menos pareja de los valores que toma **class**. Siendo que hay aproximadamente 44 observaciones de 'edible' para cada 55 observaciones de 'poisonous' nos aseguramos una buena distribución de valores para que el modelo tenga suficientes ejemplos de ambas clases para aprender y generalizar adecuadamente.
+Comenzamos por analizar la distribución de algunas variables. En primer lugar nos interesa análizar si tenemos una proporción más o menos pareja de los valores que toma **class**. Siendo que hay aproximadamente 44 observaciones de \texttt{edible} para cada 55 observaciones de \texttt{poisonous} nos aseguramos una buena distribución de valores para que el modelo tenga suficientes ejemplos de ambas clases para aprender y generalizar adecuadamente.
 
 ```{r}
 num_edible <- sum(mushrooms_renamed$class == 'edible')
@@ -230,28 +233,138 @@ print(paste("Edible:", num_edible, "(",round(prop_edible * 100, 2), "%)"))
 print(paste("Poisonous:", num_poisonous, "(",round(prop_poisonous * 100, 2), "%)"))
 ```
 
-MAS VARIABLES CATEGORICAS (histogramas?)
+Veamos la distribución de algunas otras variables categóricas. En el gráfico inferior observamos que para algunas variables la distribución de los valores que pueden tomar es más o menos pareja, por ejemplo para 'stem root', 'gill attachment' o - en menor medida - 'cap surface'. Mientras que en otras categorías hay valores sobre representados: para 'cap shape' casi la mitad de los datos son de tipo 'convex' mientras que la otra mitad se distribuye en 6 tipos restantes, y otras categorías como 'cap color', 'ring type' o 'habitat' tienen una diferencia incluso mayor. 
+
+Sabemos que una distribución pareja de datos para cada variable permite que el modelo generalice mejor por tener información variada de cada categoría, por lo que la existencia de variables con una distribución desbalanceada podría suponer un problema para el entrenamiento. Puede que ocurra un *overfit* a la clase mayoritaria, lo cual dificulta la predicción cuando los datos pertenecen a las clases minoritarias. En el árbol esto se podría ver representado con cortes que separen a la categoría mayoritaria de las demás, y en consecuencia esto puede disminuir algunas métricas como el F1-score.
 
 ```{r}
-selected_columns <- mushrooms_renamed[, c("cap.diameter", "stem.height", "stem.width")]
-summary(selected_columns)
-```
-BOXPLOT?
+library(ggplot2)
+library(patchwork)
 
+color = "steelblue"
+
+# Define individual plots
+p1 <- ggplot(mushrooms_renamed, aes(x = cap.shape)) +
+  geom_bar(fill = color) + 
+  ggtitle("Cap Shape") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p2 <- ggplot(mushrooms_renamed, aes(x = cap.surface)) +
+  geom_bar(fill = color) + 
+  ggtitle("Cap Surface") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p3 <- ggplot(mushrooms_renamed, aes(x = cap.color)) +
+  geom_bar(fill = color) + 
+  ggtitle("Cap Color") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p4 <- ggplot(mushrooms_renamed, aes(x = gill.attachment)) +
+  geom_bar(fill = color) + 
+  ggtitle("Gill Attachment") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p5 <- ggplot(mushrooms_renamed, aes(x = gill.spacing)) +
+  geom_bar(fill = color) + 
+  ggtitle("Gill Spacing") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p6 <- ggplot(mushrooms_renamed, aes(x = stem.root)) +
+  geom_bar(fill = color) + 
+  ggtitle("Stem Root") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p8 <- ggplot(mushrooms_renamed, aes(x = ring.type)) +
+  geom_bar(fill = color) +  
+  ggtitle("Ring Type") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+p9 <- ggplot(mushrooms_renamed, aes(x = habitat)) +
+  geom_bar(fill = color) + 
+  ggtitle("Habitat") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        plot.title = element_text(size = 10, hjust = 0.5))
+
+# Combine all the plots into a wider grid layout
+combined_plot <- (p1 | p2 | p3 | p4) /
+                 (p5 | p6 | p8 | p9) +
+  plot_layout(widths = c(4, 4))  # Increase the widths for more space
+```
+
+```{r}
+print(combined_plot)
+```
+
+Pasemos ahora a inspeccionar las variables númericas. Visualizamos los datos de una forma más intuitiva con los histogramas, y al superponerles las curvas normales correspondientes observamos que siguen ??? aproximadamente esta distribución.
+
+```{r}
+numeric_columns <- mushrooms_renamed[, c("cap.diameter", "stem.height", "stem.width")]
+summary(numeric_columns)
+```
+
+```{r}
+create_histogram_with_normal <- function(data, column_name, color) {
+  mu <- mean(data[[column_name]], na.rm = TRUE)
+  sigma <- sd(data[[column_name]], na.rm = TRUE)
+  
+  ggplot(data, aes_string(x = column_name)) +
+    geom_histogram(aes(y = after_stat(density)), fill = color, bins = 30, alpha = 0.6) +
+    stat_function(fun = dnorm, args = list(mean = mu, sd = sigma), color = "red", size = 0.5) +
+    ggtitle(paste(column_name)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 8),  # Título más pequeño
+      axis.text = element_text(size = 6),  # Texto del eje más pequeño
+      axis.title = element_text(size = 7),
+      axis.title.x = element_blank())  # Título del eje más pequeño
+}
+
+# Crear los histogramas
+p1 <- create_histogram_with_normal(mushrooms_renamed, "cap.diameter", "steelblue")
+p2 <- create_histogram_with_normal(mushrooms_renamed, "stem.height", "steelblue")
+p3 <- create_histogram_with_normal(mushrooms_renamed, "stem.width", "steelblue")
+
+# Combinar los histogramas en una sola visualización
+combined_plot <- p1 / p2 / p3
+```
+
+```{r}
+print(combined_plot)
+```
 Por último nos interesa analizar la correlación entre las variables, principalmente para saber si hay algunas variables más correlacionadas con nuestra variable objetivo que otras. Esto significaría que es posible que un modelo menos complejo (de menos variables) sea suficiente para predecirla.
 
 ```{r}
 #install.packages("PerformanceAnalytics")
 library("PerformanceAnalytics")
+```
 
-mushrooms_renamed[] <- lapply(mushrooms_renamed, function(x) if (is.character(x)) as.factor(x) else x)
-mushrooms_numeric <- data.frame(lapply(mushrooms_renamed, function(x) if (is.factor(x)) as.numeric(x) else x))
-
-#chart.Correlation(mushrooms_numeric, histogram=TRUE, pch=19)
+```{r}
+#chart.Correlation(numeric_columns, pch=19)
 ```
 
 
-## Ejercicio 3: Construcción de un árbol de decisión básico
+# Ejercicio 3: Construcción de un árbol de decisión básico
 
 ```{r}
 mushrooms_renamed$cap.shape <- as.factor(mushrooms_renamed$cap.shape)
@@ -264,12 +377,10 @@ mushrooms_renamed$ring.type <- as.factor(mushrooms_renamed$ring.type)
 mushrooms_renamed$veil.type <- as.factor(mushrooms_renamed$veil.type)
 mushrooms_renamed$habitat <- as.factor(mushrooms_renamed$habitat)
 mushrooms_renamed$season <- as.factor(mushrooms_renamed$season)
-
 mushrooms_renamed$class <- as.factor(mushrooms_renamed$class)
 mushrooms_renamed$does.bruise.or.bleed <- as.factor(mushrooms_renamed$does.bruise.or.bleed)
 mushrooms_renamed$has.ring <- as.factor(mushrooms_renamed$has.ring)
 ```
-
 
 ```{r}
 library(dplyr)
@@ -290,13 +401,26 @@ valid_set <- mushrooms_renamed[valid_indices, ]
 test_set <- mushrooms_renamed[test_indices, ]
 ```
 
+### **Hiperparámetros**
+
+Los parámetros e hiperparámetros que utilizamos son los que vienen por defecto en \texttt{rpart}. Los principales hiperparámetros son:
+
+* minsplit = define el número mínimo de observaciones que debe haber en un nodo para realizar un corte (split). Por defecto el valor de este hiperparámetro es 20. Un valor elevado puede producir un árbol con menor profundida, pero menos riesgo de sufrir de overfitting. Aunque, por el otro lado, si es demasiado elevado puede que no realicemos los suficientes cortes para realizar una predicción útil.
+
+* minbucket = define el número mínimo de observaciones que debe haber por hoja. Por defecto su valor es minsplit/3 (si minsplit también se deja por defecto, sería casi 7). Mientras más bajo sea mayor será la specififity, es decir la proporción de negativos identificados correctamente como tal. Sin embargo, un nivel muy bajo cercano a 1 puede correr el riesgo de realizar overfitting sobre el modelo.
+
+* maxdepth = define la profundidad máxima del árbol. Por defecto toma un valor de 30. Similar a los parámetros anteriores, un valor muy alto puede causar overfitting y un valor muy bajo puede resultar en predicciones malas.
+
+Otros hiperparámetros son cp, xval, maxcompete, maxsurrogate, usersurrogate y surrogatestyle.
+
+### **Estructura del árbol binario**
 
 ```{r}
 library(rpart)
 
 tree_model <- rpart(class ~ ., 
                     data = train_set, 
-                    method = "class")
+                    method = "class")  #dejamos los parametros por defecto
 ```
 
 ```{r}
@@ -305,9 +429,18 @@ library(rpart.plot)
 rpart.plot(tree_model)
 ```
 
-## Ejercicio 4: Evaluación del árbol de decisión básico
+El primer corte utiliza la variable 'stem.width' y con esta se logra un primer split bastante parejo: un 57% de los tallos tienen un ancho mayor a los $8.3$ centímetros y se clasifican como venenosos, mientras que el 43% restante van a la categoría de comestibles. Luego otros dos criterios de decisión importantes son la superficie y el color de la parte superior del hongo. 
 
-**Matriz de confusión**
+En el segundo nivel ya se comienzan a tomar algunas decisiones finales sobre la clasificación. Por ejemplo, si ya se había pre-clasificado como venenoso por tener un tallo ancho y luego no tiene uno de los colores listados (por defecto deja como opciones el rosa, rojo o verde), ya se determina que un 8% del total de hongos que cumple con esas características es venenoso. Por el lado derecho del árbol un 26% también se clasifica como venenoso si no tiene un cierto tipo de superficie.
+
+Las características sobre la superficie reaparecen en otro niveles para afinar aun mas la clasificación. Otras variables utilizadas son 'cap.shape' (varias veces), 'gill.attachment', 'stem.height' y 'cap.diameter'. En el último nivel antes de las hojas la última clasificación se realiza en base al 'ring.type'.
+
+Las variables 'habitat', 'season', 'does-bruise-or-bleed', 'gill.spacing', 'stem.root', 'veil.type' y 'has.ring' no fueron usadas. #REVISAR CORR
+
+
+# Ejercicio 4: Evaluación del árbol de decisión básico
+
+Comenzamos evaluando las predicciones sobre el conjunto de *testing*, tanto para las probabilidades como la clase predicha. A partir de esots datos podemos comenzar a calcular las métricas que nos interesan.
 
 ```{r}
 # Instalacion y/o importe de las librerias
@@ -320,23 +453,31 @@ library(caret)
 pred_prob <- predict(tree_model, test_set, type = "prob")  # Probabilidades predichas
 pred_class <- predict(tree_model, test_set, type = "class")  # Clases predichas
 ```
+
+### **Matriz de confusión**
+
 Hacemos la Matriz de Confusión:
+
 ```{r}
 conf_matrix <- confusionMatrix(pred_class, test_set$class)
 print("Matriz de Confusión:")
 print(conf_matrix$table)
+```
+
+```{r}
 print(t(conf_matrix$table)) # traspongo para que sea como visto en clase
 ```
+
 Lo que obtenemos es:
 
-* $TP = 2075$: Es un True Positive que dice la cantidad de instancias donde el modelo predijo \texttt{edible} y la clase verdaderamente valia edible.
-* $FP = 613$: Es un False Positive que dice la cantidad de instancias donde el modelo predijo edible, pero la clase verdaderamente valia poisonous.
-* $FN = 1008$: Es un False Negative que dice la cantidad de instancias donde el modelo predijo poisonous, pero la clase verdaderamente valia edible.
-* $TN = 3215$: Es un True Negative que dice la cantidad de instancias donde el modelo predijo poisonous y la clase clase verdaderamente valia poisonous.
+* $TP = 2075$: El True Positive indica la cantidad de instancias donde el modelo predijo \texttt{edible} y la clase verdaderamente tomaba ese valor.
+* $FP = 613$: El False Positive indica la cantidad de instancias donde el modelo predijo \texttt{edible}, cuando en realidad la clase tomaba el valor \texttt{poisonous}.
+* $FN = 1008$: El False Negative indica la cantidad de instancias donde el modelo predijo \texttt{poisonous}, cuando en realidad la clase tomaba el valor \texttt{edible}.
+* $TN = 3215$: El True Negative Indica la cantidad de instancias donde el modelo predijo \texttt{poisonous} y la clase clase verdaderamente tomaba ese valor.
 
-Por lo tanto, usamos Accuracy como una metrica de evaluacion si el resultado fue bueno:
+Necesitamos de otras métricas para evaluar si el resultado fue bueno, por lo que a continuación calculamos la \texttt{accuracy}.
 
-**Accuracy**
+### **Accuracy**
 
 Buscamos ver la proporcion de predicciones correctas (tanto positivas como negativas) de las predicciones totales.
 
@@ -346,7 +487,9 @@ $$= \frac{TP + TN}{TP + FN + FP + TN} =$$
 $$= \frac{2075 + 3215}{2075 + 1008 + 613 + 3215} =$$
 $$= \frac{5290}{6911} = 0.7654464$$ 
 
-En R:
+
+Verificamos el número obtenido con R y con el método de ['Accuracy'] de la misma matriz de confusión.
+
 ```{r}
 # 
 TP <- conf_matrix$table[1, 1]
@@ -356,55 +499,54 @@ TN <- conf_matrix$table[2, 2]
 
 # Calculamos el accuracy
 Accuracy <- (TP + TN) / (TP + FN + FP + TN)
-Accuracy
+print(paste("Accuracy: ", Accuracy))
 
 # Validacion
-conf_matrix$overall['Accuracy']
+print(paste("Accuracy (conf matrix): ", conf_matrix$overall['Accuracy']))
 ```
-Esto significa que el modelo clasifica correctamente alrededor de 76.5% de las instancias.
 
-Lo que significa que en este caso $Error rate = 1 - Accuracy = 0.2345536$.
+Esta métrica indica que el modelo clasifica correctamente alrededor de 76.5% de las instancias, lo cual significa que en este caso $Error \hspace{0.1cm} rate = 1 - Accuracy = 0.2345536$.
 
 Pero para considerar que las clases pueden llegar a estar desbalanceadas, usaremos Precision-Recall:
 
-**Precision and Recall**
+### **Precision and Recall**
 
-- Precision: 
+**Precision**
 
-  Buscamos ver la proporcion de las instancias predichas de edible que verdaderamente valen edible.
-  $$Precision_{edible} = \frac{TP}{TP + FP} =$$
-  $$= \frac{2075}{2075 + 613} = 0.7719494$$
+Buscamos ver la proporcion de las instancias predichas como \texttt{edible} (positivas) que verdaderamente toman ese valor.
+$$Precision_{edible} = \frac{TP}{TP + FP} =$$
+$$= \frac{2075}{2075 + 613} = 0.7719494$$
 
-  En R:
-  ```{r}
-  Precision <- TP/(TP + FP)
-  Precision
 
-  # Validacion
-  conf_matrix$byClass['Pos Pred Value']
-  ```
-  Esto significa que alrededor de 77.2% del tiempo cuando el modelo predice edible acierta.
+```{r}
+Precision <- TP/(TP + FP)
+Precision
 
-- Recall: 
+# Validacion
+print(paste("Precision (conf matrix): ", conf_matrix$byClass['Pos Pred Value']))
+```
+Esto significa que alrededor de 77.2% del tiempo cuando el modelo predice la clase \texttt{edible}, acierta.
 
-  Buscamos ver la proporcion de las instancias que verdaderamente valen edible que fueron correctamente predichas como edible.
-  $$Recall_{edible} = \frac{TP}{TP + FN} =$$
-  $$= \frac{2075}{2075 + 1008} = 0.6730457$$
+**Recall**
 
-  En R:
-  ```{r}
-  Recall <- TP/(TP + FN)
-  Recall
+Buscamos ver la proporcion de las instancias que verdaderamente valen \texttt{edible} que fueron correctamente predichas como tal.
+$$Recall_{edible} = \frac{TP}{TP + FN} =$$
+$$= \frac{2075}{2075 + 1008} = 0.6730457$$
 
-  # Validacion
-  conf_matrix$byClass['Sensitivity']
-  ```
+En R:
+```{r}
+Recall <- TP/(TP + FN)
+print(paste("Recall: ", Recall))
 
-  Esto significa que alrededor de 67.3% el modelo identifica correctamente si los hongos son comestibles.
+# Validacion
+print(paste("Recall: ", conf_matrix$byClass['Sensitivity']))
+```
+
+Esto significa que alrededor de 67.3% el modelo identifica correctamente si los hongos son \texttt{edible}, es decir, comestibles.
   
-Pero, queremos una ponderacion conjunta de Precision y de Recall, por lo cual usaremos F1-Score.
+Queremos también una ponderacion conjunta de Precision y de Recall, por lo cual calculamos el F1-Score.
 
-**F1-Score**
+### **F1-Score**
 
 $$F1-Score = \frac{2 * Precision * Recall}{Precision + Recall} =$$
 $$= \frac{2 * 0.7719494 * 0.6730457}{0.7719494 + 0.6730457} = 0.7191128$$
@@ -412,29 +554,281 @@ $$= \frac{2 * 0.7719494 * 0.6730457}{0.7719494 + 0.6730457} = 0.7191128$$
 En R:
 ```{r}
 F1_score <- (2 * Precision * Recall)/(Precision + Recall)
-F1_score
+print(paste("F1_score: ",F1_score))
 ```
 
-Esto significa que el accuracy del modelo en predicir la clase edible es igual a $0.7191128$.
+Esto significa que el accuracy del modelo en predicir la clase \texttt{edible} es igual a $0.7191128$.
 
-**ROC-AUC Score**
+### **ROC-AUC Score**
 
-Buscamos ver que tan bien el modelo tiene la capacidad de separar las clases. 
+Buscamos ver que tan bien el modelo tiene la capacidad de separar o clasificar las clases. 
+Esto se obtiene graficando la relación entre el *True Positive Rate* (o Recall) y el *False Positive Rate*. Es decir, de los que efectivamente son \texttt{edible}, en que proporción acierta y en cuánto erra. En la situación ideal, el TRP es 1.0 mientras que el FPR es 0.0, es decir que acierta siempre (y por ende nunca erra en la clasificación). Mientras más se acerque la curva ROC a esta forma, mejor será nuestro modelo. Medimos el área debajo de esta curva para calcular la métrica AUC-ROC.
 
 ```{r}
-library(pROC)
+# Install PRROC package if not already installed
+# install.packages("PRROC")
+library(PRROC)
 
-# Calculamos ROC curve
-roc_curve <- roc(test_set$class, pred_prob[, "edible"])
+# Calculate ROC curve using PRROC
+roc_obj <- roc.curve(scores.class0 = pred_prob[, "edible"], 
+                     weights.class0 = test_set$class == "edible",
+                     curve = TRUE)
 
-#  AUC score
-auc_value <- auc(roc_curve)
+# Plot the ROC curve
+plot(roc_obj$curve[, 1], roc_obj$curve[, 2], 
+     type = "l", 
+     col = "blue", 
+     lwd = 2, 
+     xlab = "False Positive Rate (FPR)", 
+     ylab = "True Positive Rate (TPR)", 
+     main = "ROC Curve")
+
+# Diagonal line representing random classifier
+abline(a = 0, b = 1, lty = 2, col = "red")
+```
+
+```{r}
+auc_value <- roc_obj$auc
 print(paste("AUC-ROC Score:", auc_value))
-
-# Plot de ROC curve
-plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2)
 ```
 
 $$AUC-ROC = 0.7921915$$
 
 Esto significa que como $0.7921915 > 0.5$, el modelo se ejecuta mejor que hacer random guessing.
+
+# Ejercicio 5: Optimización del modelo
+
+```{r}
+library(pROC)
+opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, minbucket_set) {
+  # Initialize a data frame to store results
+  results <- data.frame(maxdepth = integer(),
+                         minsplit_val = integer(),
+                         minbucket_val = integer(),
+                         auc = numeric())
+  
+  # Loop through all combinations of hyperparameters
+  for (depth in maxdepth_set) {
+    for (split in minsplit_set) {
+      for (bucket in minbucket_set) {
+        # Adjust the model
+        tree_model_modified <- rpart(class ~ ., 
+                                     data = train_data, 
+                                     method = "class", 
+                                     control = rpart.control(minbucket = bucket, 
+                                                             minsplit = split, 
+                                                             maxdepth = depth,
+                                                             cp = 0, 
+                                                             xval = 0))
+        
+        # Predict probabilities on the validation set
+        pred_probs <- predict(tree_model_modified, newdata = valid_data, type = "prob")[, 2]
+        
+        # Calculate AUC-ROC
+        roc_curve <- roc(valid_data$class, pred_probs)
+        auc_value <- auc(roc_curve)
+        
+        results <- rbind(results, data.frame(maxdepth = depth, 
+                                             minsplit_val = split, 
+                                             minbucket_val = bucket, 
+                                             auc = auc_value))
+      }
+    }
+  }
+  
+  return(results)
+}
+
+```
+
+VISUALIZACION!!!!
+
+```{r}
+
+
+```
+
+```{r}
+maxdepth_options <- c(3, 5, 7, 9, 11)
+minsplit_options <- c(1000, 3000, 6000, 10000, 20000) #si ponemos 1000 como minimo elige eso (y maxdepth 9) y el aucroc queda en 87% y el TPR aumenta con FPR menor (sin 1000 y con opc 2000, 5000, 7000 elige 2000 y bajan ambos, bien por el FPR)
+minbucket_options <- c(50, 100, 500, 1000, 5000)
+```
+
+```{r, include = FALSE}
+# Identificar el mejor modelo basado en AUC
+results <- opt_hiperparams(train_set, valid_set, maxdepth_options, minsplit_options, minbucket_options)
+```
+
+```{r}
+best_model_params <- results[which.max(results$auc),]
+best_maxdepth <- best_model_params$maxdepth
+best_maxdepth <- as.integer(as.character(best_maxdepth))
+
+best_minsplit <- best_model_params$minsplit_val
+best_minbucket <- best_model_params$minbucket_val
+```
+
+```{r}
+new_model <- rpart(class ~ ., 
+                   data = train_set, 
+                   method = "class",
+                   minsplit = best_minsplit,
+                   minbucket = best_minbucket,
+                   maxdepth = best_maxdepth,
+                   cp = 0, 
+                   xval = 0)
+
+
+
+# Hacer predicciones en el conjunto de testeo
+test_predictions <- predict(new_model, newdata = test_set, type = "prob")[,2]
+
+# Calcular el AUC-ROC
+roc_curve <- roc(test_set$class, test_predictions)
+auc_value <- auc(roc_curve)
+
+auc_value <- roc_curve$auc
+```
+
+```{r}
+print(paste("Max depth *: ",best_maxdepth))
+print(paste("Min bucket *: ",best_minbucket))
+print(paste("Min split *: ",best_minsplit))
+```
+
+```{r}
+library(rpart.plot)
+rpart.plot(new_model)
+```
+
+```{r}
+print(paste("AUC-ROC Score:", auc_value))
+```
+
+```{r}
+# Plot de ROC curve
+plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1.0,0.0))
+```
+
+```{r}
+prediccion <- predict(new_model, test_set, type = "class")  # Clases predichas
+
+matrix <- confusionMatrix(prediccion, test_set$class)
+print("Matriz de Confusión:")
+
+print(t(matrix$table))
+
+TP <- matrix$table[1, 1]
+FP <- matrix$table[1, 2]
+FN <- matrix$table[2, 1]
+TN <- matrix$table[2, 2]
+
+TPR <- TP / (TP + FN)
+FPR <- FP / (FP + TN)
+```
+
+```{r}
+# Print the metrics
+print(paste("True Positive Rate (TPR):", TPR))
+print(paste("False Positive Rate (FPR):", FPR))
+```
+
+Habiendo optimizado los hiperparámetros obtenemos un valor de AUC-ROC de aproximadamente 0.877, 0.08 puntos mejor que con el árbol básico sin optimizar. Además, logramos aumentar el TPR un poco más de 0.10 puntos, y disminuir el FPR de 0.16 a 0.145. Este último punto es muy relevante, ya que en nuestro modelo
+
+* El TPR indica la proporción de hongos comestibles correctamente identificados como tal.
+* El FPR indica la proporción de hongos venenosos incorrectamente identificados como comestibles.
+
+Si el modelo fuera a usarse como una manera confiable de decidir si comer un hongo salvaje, resulta más peligroso que el FPR sea alto a que el TPR sea bajo.
+
+# Ejercicio 6: Interpretación de resultados
+
+Los primeros cortes del árbol optimizado son iguales a los del árbol original. Los nuevos cortes se generan en parte porque se repiten categorías ya usadas a lo largo del árbol ('cap.color', 'cap.shape'). Pero además se utilizan variables que antes no habían aparecido, como 'does.bruise.bleed', 'habitat' o 'season'. Estas se usan a partir del cuarto nivel del árbol e incluso más abajo, indicando que no eran variables tan influyentes en la predicción como las ya usadas, pero igualmente ayudaron en su conjunto a mejorar la predicción.
+
+
+# Ejercicio 7: Análisis del impacto de los valores faltantes
+
+```{r}
+add_na_to_df <- function(df, na_fraction) {
+  # Seleccionar las columnas predictoras
+  predictors <- df %>% select(-class)
+  
+  num_rows <- nrow(predictors)
+  num_na <- round(num_rows * na_fraction)
+  
+  df_na <- df
+  
+  # Agregar NA a cada columna individualmente
+  for (col in names(predictors)) {
+    na_indices <- sample(1:num_rows, num_na, replace = FALSE)
+    df_na[na_indices, col] <- NA
+  }
+  
+  return(df_na)
+}
+
+veinte_train <- add_na_to_df(train_set, 0.20)
+cincuenta_train <- add_na_to_df(train_set, 0.50)
+setentaicinco_train <- add_na_to_df(train_set, 0.75)
+
+veinte_valid <- add_na_to_df(valid_set, 0.20)
+cincuenta_valid <- add_na_to_df(valid_set, 0.50)
+setentaicinco_valid <- add_na_to_df(valid_set, 0.75)
+
+veinte_test <- add_na_to_df(test_set, 0.20)
+cincuenta_test <- add_na_to_df(test_set, 0.50)
+setentaicinco_test <- add_na_to_df(test_set, 0.75)
+```
+
+Sobre cada dataset nuevo de los datos de training, verificamos que haya la cantidad esperada de NAs:
+
+```{r}
+total <- nrow(train_set)
+num_20 <- ceiling(total * 0.2)
+num_50 <- floor(total * 0.5)
+num_75 <- ceiling(total * 0.75)
+print(paste("Con 20% NAs debería haber ",num_20 ,"datos faltantes"))
+print(paste("Con 50% NAs debería haber ",num_50 ,"datos faltantes"))
+print(paste("Con 75% NAs debería haber ",num_75 ,"datos faltantes"))
+```
+
+Revisamos que efectivamente incorporamos estos datos correctamente:
+
+```{r}
+# Verificar los resultados con algunas columnas samples
+summary(veinte_train$cap.diameter)["NA's"]
+summary(cincuenta_train$gill.attachment)["NA's"]
+summary(setentaicinco_train$veil.type)["NA's"]
+```
+
+# Ejercicio 8: Conclusiones y discusión
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
