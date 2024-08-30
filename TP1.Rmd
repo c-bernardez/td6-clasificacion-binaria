@@ -7,8 +7,17 @@ output:
     df_print: paged
 ---
 
-```{r}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, echo=TRUE, results='hide'}
+# Set global chunk options
+knitr::opts_chunk$set(
+  collapse = TRUE,  # Collapse code and output
+  comment = "#>",   # Set comment style
+  tidy = TRUE,      # Tidy code formatting
+  width = 80        # Set the width for code wrapping
+)
+
+# Set global R options
+options(width = 80)  # Set output width for console
 ```
 
 # Ejercicio 1: Introducción al problema
@@ -50,7 +59,6 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'sticky'
     - 'wrinkled'
     - 'fleshy'
-    - '' # 
 
     
 - \texttt{cap-color} (variable categórica): indica el color del sombrero del hongo.
@@ -97,20 +105,19 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
 - \texttt{stem-width} (variable numérica): indica el ancho del pie del hongo en mm.
 
 
-
 - \texttt{stem-root} (variable categórica): indica la estructura de la raíz del pie del hongo.
     - 'bulbous'
     - 'swollen'
     - 'club'
-    - 'cup' #extra
-    - 'equal' #extra
-    - 'rhizomorphs'#extra
+    - 'cup' 
+    - 'equal'
+    - 'rhizomorphs'
     - 'rooted' 
     - '' #falta es f, supongo que es none
     - '' #
 
 - \texttt{veil-type} (variable categórica): indica el tipo de velo que cubre las láminas del hongo.
-    - 'partial' #extra
+    - 'partial'
     - 'universal'
     - '' #
 
@@ -119,15 +126,15 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'false'
 
 - \texttt{ring-type} (variable categórica): indica el tipo del anillo presente en el hongo.
-    - 'cobwebby' #extra 
+    - 'cobwebby'
     - 'evanescent'
     - 'flaring'
     - 'grooved'
     - 'large'
     - 'pendant'
-    - 'sheathing', #extra
+    - 'sheathing',
     - 'zone'
-    - 'scaly' #extra
+    - 'scaly' 
     - 'movable' 
     - 'none'
     - 'unknown' #extra
@@ -152,13 +159,28 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
     - 'winter'
 
 
-Para resumir, la variable \texttt{class} es una variable categórica binaria que indica si un hongo es comestible (\texttt{edible}) o venenoso (\texttt{poisonous}) pra poder hacer una clasificación binaria. 
+El conjunto de datos de mushrooms es ideal para utilizar árboles de decisión por:
+
+* Las variables son diversas, ya que combina variables tanto categóricas, como numéricas, que los árboles de decisión manejan de una manera eficaz.
+
+* La relación entre las características de un hongo (como el color, la forma, y la textura) y su clasificación como \texttt{edible} o \texttt{poisonous} no es lineal y puede ser compleja. Los árboles de decisión son particularmente buenos para captar estas relaciones no lineales, ya que dividen los datos en múltiples ramas basadas en diferentes combinaciones de características.
+
+* Los árboles de decisión ofrecen interpretaciones claras sobre qué características determinan la clasificación de un hongo como \texttt{poisonous}, que es valioso en este contexto, ya que puede ser crucial en aplicaciones prácticas, como la seguridad de la salud.
+
+* Los arboles logran capturar interacciones entre variables, como color y forma del sombrero.
+
+* El tamaño del dataset, que consiste de 46.069 observaciones, permite construir modelos robustos y generalizables, además de aplicar poda para evitar sobreajuste.
+
+
+
+Para resumir, la variable \texttt{class} es una variable categórica binaria que indica si un hongo es comestible (\texttt{edible}) o venenoso (\texttt{poisonous}) para poder hacer una clasificación binaria. 
 
 Asimismo, el conjunto de datos tiene varias variables categóricas (cap-shape, cap-surface, cap-color, entre otras) y variables numéricas como cap-diameter, stem-heigh, y stem-width, cumpliendo así la inclusión de ambos tipos de atributos.
 
 Las variables categóricas están representadas como palabras (e.g. cap-shape con valores como 'bell', 'conical', etc.). Además, hicimos un preprocesamiento de los datos tal que tengamos menos de 50.000 observaciones, pues el dataset original consistía de más de 60K de datos, y que además no tengan valores nulos. ## HOWWW
 
 Usamos árboles de decisión porque son capaces de manejar tanto variables categóricas como numéricas, permitiendo identificar de manera eficaz patrones complejos y no lineales en los datos. Además, los árboles de decisión pueden dividir los datos en función de múltiples atributos, lo que es útil cuando tenemos varias características relevantes, como en este caso, para clasificar hongos entre comestibles y venenosos.
+
 
 
 # Ejercicio 2: Preparación de los datos
@@ -210,7 +232,23 @@ mushrooms_renamed <- mushrooms %>%
 ```
 
 ```{r}
-head(mushrooms_renamed)
+unique(mushrooms_renamed$class)
+unique(mushrooms_renamed$cap.shape)
+unique(mushrooms_renamed$cap.surface)
+unique(mushrooms_renamed$cap.color)
+unique(mushrooms_renamed$does.bruise.or.bleed)
+unique(mushrooms_renamed$gill.attachment)
+unique(mushrooms_renamed$gill.spacing)
+unique(mushrooms_renamed$stem.root)
+unique(mushrooms_renamed$veil.type)
+unique(mushrooms_renamed$has.ring)
+unique(mushrooms_renamed$ring.type)
+unique(mushrooms_renamed$habitat)
+unique(mushrooms_renamed$season)
+```
+
+```{r}
+head(mushrooms_renamed$class)
 ```
 
 ### **Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
@@ -356,7 +394,7 @@ Por último nos interesa analizar la correlación entre las variables, principal
 
 ```{r}
 #install.packages("PerformanceAnalytics")
-library("PerformanceAnalytics")
+#library("PerformanceAnalytics")
 ```
 
 ```{r}
@@ -460,7 +498,7 @@ Hacemos la Matriz de Confusión:
 
 ```{r}
 conf_matrix <- confusionMatrix(pred_class, test_set$class)
-print("Matriz de Confusión:")
+cat("Matriz de Confusion:\n")
 print(conf_matrix$table)
 ```
 
@@ -596,7 +634,18 @@ $$AUC-ROC = 0.7921915$$
 
 Esto significa que como $0.7921915 > 0.5$, el modelo se ejecuta mejor que hacer random guessing.
 
+
+Por lo tanto, evaluamos el modelo de árbol de decisión sobre el conjunto de testeo, calculando varias métricas claves. La matriz de confusión mostró un balance aceptable entre verdaderos positivos y negativos, aunque con un número considerable de falsos positivos y negativos. El accuracy fue del 76.5%, lo que indica que el modelo clasifica correctamente la mayoría de las instancias.
+
+La precisión fue del 77.2% y el recall del 67.3%, lo que sugiere que el modelo es más confiable en predecir instancias positivas que en capturar todas las positivas existentes. El F1-score combinó estos aspectos y alcanzó un valor de 0.719.
+
+Finalmente, el AUC-ROC de 0.792 indica que el modelo tiene una buena capacidad para distinguir entre las clases, superando el azar. En resumen, el modelo tiene un desempeño razonable.
+
 # Ejercicio 5: Optimización del modelo
+
+En esta sección, optimizaremos el modelo de árbol de decisión ajustando los hiperparámetros maxdepth, minsplit, y minbucket. La optimización se realizará evaluando el rendimiento del modelo en términos de AUC-ROC sobre un conjunto de validación. Exploraremos varias combinaciones de estos hiperparámetros para identificar la configuración que maximice el AUC-ROC.
+
+Primero, definimos una función opt_hiperparams que ajusta el modelo de árbol de decisión para cada combinación de hiperparámetros y calcula el AUC-ROC en el conjunto de validación.
 
 ```{r}
 library(pROC)
@@ -648,16 +697,22 @@ VISUALIZACION!!!!
 
 ```
 
+Ahora, definimos los conjuntos de valores que probaremos para los hiperparámetros maxdepth, minsplit, y minbucket.
+
 ```{r}
 maxdepth_options <- c(3, 5, 7, 9, 11)
 minsplit_options <- c(1000, 3000, 6000, 10000, 20000) #si ponemos 1000 como minimo elige eso (y maxdepth 9) y el aucroc queda en 87% y el TPR aumenta con FPR menor (sin 1000 y con opc 2000, 5000, 7000 elige 2000 y bajan ambos, bien por el FPR)
 minbucket_options <- c(50, 100, 500, 1000, 5000)
 ```
 
-```{r, include = FALSE}
+Ejecutamos la función opt_hiperparams para encontrar la combinación óptima de hiperparámetros.
+
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
 # Identificar el mejor modelo basado en AUC
 results <- opt_hiperparams(train_set, valid_set, maxdepth_options, minsplit_options, minbucket_options)
 ```
+
+A continuación, identificamos los hiperparámetros que maximizaron el AUC-ROC.
 
 ```{r}
 best_model_params <- results[which.max(results$auc),]
@@ -667,6 +722,10 @@ best_maxdepth <- as.integer(as.character(best_maxdepth))
 best_minsplit <- best_model_params$minsplit_val
 best_minbucket <- best_model_params$minbucket_val
 ```
+
+En este paso, seleccionamos la configuración de hiperparámetros que produjo el mayor AUC-ROC en el conjunto de validación. Esta configuración se usará para ajustar un nuevo modelo que será evaluado en el conjunto de testeo.
+
+Con los mejores hiperparámetros seleccionados, entrenamos el modelo final y evaluamos su rendimiento en el conjunto de testeo.
 
 ```{r}
 new_model <- rpart(class ~ ., 
@@ -690,11 +749,15 @@ auc_value <- auc(roc_curve)
 auc_value <- roc_curve$auc
 ```
 
+Este bloque de código ajusta el modelo final con los mejores valores de los hiperparámetros identificados y luego evalúa su rendimiento en el conjunto de testeo, calculando el AUC-ROC. Este valor se comparará con el AUC-ROC obtenido con el modelo básico.
+
 ```{r}
 print(paste("Max depth *: ",best_maxdepth))
 print(paste("Min bucket *: ",best_minbucket))
 print(paste("Min split *: ",best_minsplit))
 ```
+
+Finalmente, visualizamos el modelo optimizado y evaluamos sus métricas de rendimiento.
 
 ```{r}
 library(rpart.plot)
@@ -709,6 +772,8 @@ print(paste("AUC-ROC Score:", auc_value))
 # Plot de ROC curve
 plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1.0,0.0))
 ```
+
+A continuación, comparamos el rendimiento del modelo optimizado con el modelo básico evaluando la matriz de confusión, el TPR, y el FPR.
 
 ```{r}
 prediccion <- predict(new_model, test_set, type = "class")  # Clases predichas
@@ -742,10 +807,32 @@ Si el modelo fuera a usarse como una manera confiable de decidir si comer un hon
 
 # Ejercicio 6: Interpretación de resultados
 
-Los primeros cortes del árbol optimizado son iguales a los del árbol original. Los nuevos cortes se generan en parte porque se repiten categorías ya usadas a lo largo del árbol ('cap.color', 'cap.shape'). Pero además se utilizan variables que antes no habían aparecido, como 'does.bruise.bleed', 'habitat' o 'season'. Estas se usan a partir del cuarto nivel del árbol e incluso más abajo, indicando que no eran variables tan influyentes en la predicción como las ya usadas, pero igualmente ayudaron en su conjunto a mejorar la predicción.
+**Explicación del árbol optimizado**
+
+El árbol de decisión optimizado presenta algunas diferencias clave con respecto al árbol básico. Aunque los primeros cortes siguen siendo los mismos, reflejando la importancia central de ciertas variables como cap.color y cap.shape, el árbol optimizado introduce nuevas variables a partir de niveles más profundos, como does.bruise.bleed, habitat, y season.
+
+Estas nuevas variables, aunque no fueron las más influyentes en los primeros cortes, contribuyeron a mejorar la precisión del modelo al refinar las decisiones en ramas específicas. Esto sugiere que, al permitir una mayor profundidad y ajuste en el árbol, logramos capturar relaciones más sutiles en los datos que no fueron aprovechadas por el modelo básico.
+
+**Rendimiento**
+
+El valor de AUC-ROC del árbol optimizado es de 0.877, lo que representa una mejora significativa de 0.08 puntos en comparación con el árbol básico. Esta mejora se traduce también en un mejor True Positive Rate (TPR) y una reducción del False Positive Rate (FPR). Específicamente, el TPR aumentó en 0.10 puntos, lo que implica que el modelo ahora es más efectivo en identificar correctamente los hongos comestibles. Más crucialmente, el FPR disminuyó de 0.16 a 0.145, reduciendo el riesgo de clasificar incorrectamente hongos venenosos como comestibles—aumentando así la seguridad del modelo en aplicaciones sensibles.
+
+**Variables**
+
+Aunque las variables clave del árbol básico siguen desempeñando un papel principal en el árbol optimizado, la introducción de nuevas variables en los niveles inferiores sugiere un cambio en la estructura de importancia. La aparición de variables como habitat y season en las ramas más profundas indica que estas variables, aunque no determinantes por sí solas, contribuyen a mejorar la clasificación cuando se combinan con otras. Esta combinación de variables más específicas permite al modelo optimizado tener un enfoque más refinado, mejorando la capacidad de generalización y aumentando el AUC-ROC.
+
+**Consideraciones finales**
+
+En resumen, la optimización de los hiperparámetros ha llevado a un árbol más profundo y detallado, que captura relaciones más complejas en los datos. Esto ha resultado en un modelo más preciso y seguro, especialmente en este contexto donde la minimización del FPR es crítico. Este proceso de optimización no solo ha mejorado las métricas de rendimiento, sino que también revelo la importancia de considerar variables adicionales que, en un primer análisis, podrían haber sido subestimadas.
 
 
 # Ejercicio 7: Análisis del impacto de los valores faltantes
+
+En este ejercicio, exploraremos cómo la introducción de valores faltantes (NA) en diferentes proporciones afecta el rendimiento de un modelo de árbol de decisión optimizado. Para ello, se crearán tres conjuntos de datos con 20%, 50% y 75% de valores faltantes, respectivamente, y se analizará el impacto de estos valores en la performance del modelo.
+
+En este primer bloque de código, definimos una función add_na_to_df que nos permite agregar valores faltantes (NA) a un conjunto de datos en una proporción específica.
+
+Simular la pérdida de datos en diferentes grados nos permite evaluar la robustez del modelo frente a escenarios donde la información está incompleta.
 
 ```{r}
 add_na_to_df <- function(df, na_fraction) {
@@ -765,7 +852,10 @@ add_na_to_df <- function(df, na_fraction) {
   
   return(df_na)
 }
+```
 
+Se crean tres nuevos conjuntos de datos para entrenamiento, validación y testeo con diferentes niveles de valores faltantes (20%, 50%, 75%). Esto permite evaluar cómo se comporta el modelo bajo diferentes niveles de datos incompletos.
+```{r}
 veinte_train <- add_na_to_df(train_set, 0.20)
 cincuenta_train <- add_na_to_df(train_set, 0.50)
 setentaicinco_train <- add_na_to_df(train_set, 0.75)
@@ -781,6 +871,7 @@ setentaicinco_test <- add_na_to_df(test_set, 0.75)
 
 Sobre cada dataset nuevo de los datos de training, verificamos que haya la cantidad esperada de NAs:
 
+Antes de seguir con la optimización, verificamos que los conjuntos de datos generados contengan el número esperado de valores faltantes.
 ```{r}
 total <- nrow(train_set)
 num_20 <- ceiling(total * 0.2)
@@ -799,6 +890,79 @@ summary(veinte_train$cap.diameter)["NA's"]
 summary(cincuenta_train$gill.attachment)["NA's"]
 summary(setentaicinco_train$veil.type)["NA's"]
 ```
+
+Ahora, optimizamos el modelo de árbol de decisión para cada uno de los conjuntos de datos generados con NA, utilizando la misma función de optimización de hiperparámetros utilizada en ejercicio 5.
+
+```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+results_veinte <- opt_hiperparams(veinte_train, veinte_valid, maxdepth_options, minsplit_options, minbucket_options)
+results_cincuenta <- opt_hiperparams(cincuenta_train, cincuenta_valid, maxdepth_options, minsplit_options, minbucket_options)
+results_setentaicinco <- opt_hiperparams(setentaicinco_train, setentaicinco_valid, maxdepth_options, minsplit_options, minbucket_options)
+```
+
+Seleccionamos los mejores valores de hiperparámetros para cada conjunto de datos con NA, basándonos en el AUC obtenido en validación.
+```{r}
+find_best_params <- function(results) {
+  best_model_params <- results[which.max(results$auc),]
+  best_maxdepth <- as.integer(as.character(best_model_params$maxdepth))
+  best_minsplit <- as.integer(as.character(best_model_params$minsplit))
+  best_minbucket <- as.integer(as.character(best_model_params$minbucket))
+  
+  return(list(maxdepth = best_maxdepth, minsplit = best_minsplit, minbucket = best_minbucket))
+}
+
+best_params_veinte <- find_best_params(results_veinte)
+best_params_cincuenta <- find_best_params(results_cincuenta)
+best_params_setentaicinco <- find_best_params(results_setentaicinco)
+```
+
+```{r}
+print(paste("Veinte Train - Max depth:", best_params_veinte$maxdepth, "Min split:", best_params_veinte$minsplit, "Min bucket:", best_params_veinte$minbucket))
+print(paste("Cincuenta Train - Max depth:", best_params_cincuenta$maxdepth, "Min split:", best_params_cincuenta$minsplit, "Min bucket:", best_params_cincuenta$minbucket))
+print(paste("Setentaicinco Train - Max depth:", best_params_setentaicinco$maxdepth, "Min split:", best_params_setentaicinco$minsplit, "Min bucket:", best_params_setentaicinco$minbucket))
+```
+
+Una vez identificados los mejores hiperparámetros, entrenamos un nuevo modelo y evaluamos su rendimiento en el conjunto de testeo.
+
+```{r}
+train_and_evaluate <- function(train_set, test_set, best_params) {
+  new_model <- rpart(class ~ ., 
+                     data = train_set, 
+                     method = "class",
+                     minsplit = best_params$minsplit,
+                     minbucket = best_params$minbucket,
+                     maxdepth = best_params$maxdepth,
+                     cp = 0, 
+                     xval = 0)
+  
+  # Make predictions
+  test_predictions <- predict(new_model, newdata = test_set, type = "prob")[,2]
+  # Calculate AUC
+  roc_curve <- roc(test_set$class, test_predictions)
+  auc_value <- auc(roc_curve)
+  
+  return(auc_value)
+}
+
+# Evaluate each model
+auc_veinte <- train_and_evaluate(veinte_train, veinte_test, best_params_veinte)
+auc_cincuenta <- train_and_evaluate(cincuenta_train, cincuenta_test, best_params_cincuenta)
+auc_setentaicinco <- train_and_evaluate(setentaicinco_train, setentaicinco_test, best_params_setentaicinco)
+```
+
+Por lo cual, entrenamos un nuevo modelo con los mejores hiperparámetros obtenidos para cada nivel de NA y calculamos su AUC-ROC en el conjunto de testeo. Esto nos permite medir cómo el rendimiento del modelo se ve afectado cuando se enfrenta a datos incompletos.
+
+```{r}
+print(paste("Veinte Train AUC:", auc_veinte))
+print(paste("Cincuenta Train AUC:", auc_cincuenta))
+print(paste("Setentaicinco Train AUC:", auc_setentaicinco))
+```
+
+El árbol con mejor performance en testeo es el de menor cantidad de NAs (20%), lo cual tiene sentido porque una mayor cantidad de datos evita la distorsión de datos. Los hiperparámetros que lo optimizan son los mismos que los que optimizaban al árbol del punto 5, pero la performance es 0.07 puntos menor.
+
+Los valores muestran cómo el AUC del modelo disminuye a medida que aumenta la proporción de valores faltantes. Esto demuestra claramente que los modelos entrenados con datos más completos (menos NA) tienden a tener un mejor rendimiento, ya que tienen más información disponible para hacer predicciones.
+
+Los resultados obtenidos indican que la presencia de valores faltantes tiene un impacto negativo en el rendimiento del modelo. Con un 20% de NA, el modelo todavía mantiene una buena capacidad predictiva, pero a medida que aumentamos el porcentaje de NA a 50% y 75%, el rendimiento disminuye significativamente, lo que subraya la importancia de manejar adecuadamente los datos incompletos en la práctica.
+
 
 # Ejercicio 8: Conclusiones y discusión
 
