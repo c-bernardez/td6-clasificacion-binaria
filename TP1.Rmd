@@ -1,23 +1,25 @@
 ---
 title: "TP1: Clasificación binaria - Predicción de la comestibilidad de hongos"
 author: "Micaela Oliva, Camila Bernardez"
+date: "`r Sys.Date()`"
 output:
   pdf_document: default
   html_document:
     df_print: paged
 ---
 
-```{r setup, echo=TRUE, results='hide'}
+```{r,  results='hide', echo=FALSE}
 # Set global chunk options
 knitr::opts_chunk$set(
-  collapse = TRUE,  # Collapse code and output
-  comment = "#>",   # Set comment style
-  tidy = TRUE,      # Tidy code formatting
-  width = 80        # Set the width for code wrapping
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,  
+  tidy = TRUE,      
+  width = 50        
 )
 
 # Set global R options
-options(width = 80)  # Set output width for console
+options(width = 50)  
 ```
 
 # Ejercicio 1: Introducción al problema
@@ -30,74 +32,52 @@ El dataset elegido tiene como origen:\
 Es un dataset que busca clasificar si un hongo es comestible (edible) o no (poisonous). Para considerarlo, el dataset esta compuesto de 16 variables, de las cuáles:
 
 - \texttt{class} (variable categórica binaria): indica si un hongo es comestible o no, y es lo que buscamos predecir.
-    - edible 
-    - poisonous
 
+```
+    [edible, poisonous]
+```
 
 - \texttt{cap-diameter} (variable numérica): indica el diametro del sombrero del hongo en cm.
 
 
 - \texttt{cap-shape} (variable categórica): indica el forma del sombrero del hongo.
-    - 'bell' 
-    - 'conical'
-    - 'convex'
-    - 'flat'
-    - 'sunken'
-    - 'spherical'
-    - 'others'
 
+```
+    ['bell', 'conical', 'convex', 'flat', 'sunken', 'spherical', 'others']
+```
   
 - \texttt{cap-surface} (variable categórica): indica la textura de la superficie del sombrero del hongo.
-    - 'fibrous' 
-    - 'grooves' 
-    - 'scaly'
-    - 'smooth'
-    - 'dry'
-    - 'shiny'
-    - 'leathery'
-    - 'silky'
-    - 'sticky'
-    - 'wrinkled'
-    - 'fleshy'
+
+```
+    ['fibrous', 'grooves', 'scaly', 'smooth', 'dry', 'shiny', 'leathery', 'silky', 'sticky', 
+    'wrinkled', 'fleshy']
+```
 
     
 - \texttt{cap-color} (variable categórica): indica el color del sombrero del hongo.
-    - 'brown'
-    - 'orange'
-    - 'buff'
-    - 'gray'
-    - 'green'
-    - 'pink'
-    - 'purple'
-    - 'red'
-    - 'white'
-    - 'yellow'
-    - 'blue'
-    - 'black'
 
+```
+    ['brown', 'orange', 'buff', 'gray', 'green', 'pink', 'purple', 'red', 'white', 'yellow', 
+    'blue', 'black']
+```
 
 - \texttt{does-bruise-or-bleed} (variable categórica binaria -> true/false): indica si el hongo al lesionarse presenta moratones o sangrado.
-    - 'true'
-    - 'false'
-
+    
+```    
+    ['true', 'false']
+```
 
 - \texttt{gill-attachment} (variable categórica): indica cómo las láminas del hongo se adhieren al pie.
-    - 'adnate'
-    - 'adnexed'
-    - 'decurrent'
-    - 'free'
-    - 'sinuate'
-    - 'pores'
-    - 'none' #
-    - '' #
 
+```
+    ['adnate', 'adnexed', 'decurrent', 'free', 'sinuate', 'pores', 'none']
+```
     
 - \texttt{gill-spacing} (variable categórica): indica la separación entre las láminas del hongo.
-    - 'close'
-    - 'distant'
-    - 'none' #
-    - '' #
 
+```
+    ['close', 'distant', 'none']
+```
 
 - \texttt{stem-heigh} (variable numérica): indica la altura del pie del hongo en cm.
 
@@ -105,59 +85,44 @@ Es un dataset que busca clasificar si un hongo es comestible (edible) o no (pois
 - \texttt{stem-width} (variable numérica): indica el ancho del pie del hongo en mm.
 
 
+
 - \texttt{stem-root} (variable categórica): indica la estructura de la raíz del pie del hongo.
-    - 'bulbous'
-    - 'swollen'
-    - 'club'
-    - 'cup' 
-    - 'equal'
-    - 'rhizomorphs'
-    - 'rooted' 
-    - '' #falta es f, supongo que es none
-    - '' #
+
+```
+    ['bulbous', 'swollen', 'club', 'cup', 'equal', 'rhizomorphs', 'rooted'] #funnel
+```
 
 - \texttt{veil-type} (variable categórica): indica el tipo de velo que cubre las láminas del hongo.
-    - 'partial'
-    - 'universal'
-    - '' #
+
+```
+    [- 'partial', 'universal']
+```
 
 - \texttt{has-ring} (variable categórica binaria -> true/false): indica si esta presente un anillo en el hongo o no.
-    - 'true'
-    - 'false'
+
+```
+    ['true', 'false']
+```
 
 - \texttt{ring-type} (variable categórica): indica el tipo del anillo presente en el hongo.
-    - 'cobwebby'
-    - 'evanescent'
-    - 'flaring'
-    - 'grooved'
-    - 'large'
-    - 'pendant'
-    - 'sheathing',
-    - 'zone'
-    - 'scaly' 
-    - 'movable' 
-    - 'none'
-    - 'unknown' #extra
-    - ''
+    
+```  
+    ['cobwebby', 'evanescent', 'flaring', 'grooved', 'large', 'pendant', 'sheathing', 'zone', 
+    'scaly', 'movable', 'none', 'unknown'] #unknown?
+```
 
 
 - \texttt{habitat} (variable categórica): indica el ambiente en el cual el hongo fue encontrado.
-    - 'grasses' 
-    - 'leaves' 
-    - 'meadows'
-    - 'paths'
-    - 'heaths'
-    - 'urban'
-    - 'waste'
-    - 'woods'
 
+```
+    ['grasses', 'leaves', 'meadows', 'paths', 'heaths', 'urban', 'waste', 'woods']
+```
 
 - \texttt{season} (variable categórica): indica la estación en la cual el hongo es comunmente observado.
-    - 'spring' 
-    - 'summer'
-    - 'autumn'
-    - 'winter'
 
+```
+    ['spring', 'summer', 'autumn', 'winter']
+```
 
 El conjunto de datos de mushrooms es ideal para utilizar árboles de decisión por:
 
@@ -167,20 +132,9 @@ El conjunto de datos de mushrooms es ideal para utilizar árboles de decisión p
 
 * Los árboles de decisión ofrecen interpretaciones claras sobre qué características determinan la clasificación de un hongo como \texttt{poisonous}, que es valioso en este contexto, ya que puede ser crucial en aplicaciones prácticas, como la seguridad de la salud.
 
-* Los arboles logran capturar interacciones entre variables, como color y forma del sombrero.
+* Los árboles logran capturar interacciones entre variables, como color y forma del sombrero.
 
 * El tamaño del dataset, que consiste de 46.069 observaciones, permite construir modelos robustos y generalizables, además de aplicar poda para evitar sobreajuste.
-
-
-
-Para resumir, la variable \texttt{class} es una variable categórica binaria que indica si un hongo es comestible (\texttt{edible}) o venenoso (\texttt{poisonous}) para poder hacer una clasificación binaria. 
-
-Asimismo, el conjunto de datos tiene varias variables categóricas (cap-shape, cap-surface, cap-color, entre otras) y variables numéricas como cap-diameter, stem-heigh, y stem-width, cumpliendo así la inclusión de ambos tipos de atributos.
-
-Las variables categóricas están representadas como palabras (e.g. cap-shape con valores como 'bell', 'conical', etc.). Además, hicimos un preprocesamiento de los datos tal que tengamos menos de 50.000 observaciones, pues el dataset original consistía de más de 60K de datos, y que además no tengan valores nulos. ## HOWWW
-
-Usamos árboles de decisión porque son capaces de manejar tanto variables categóricas como numéricas, permitiendo identificar de manera eficaz patrones complejos y no lineales en los datos. Además, los árboles de decisión pueden dividir los datos en función de múltiples atributos, lo que es útil cuando tenemos varias características relevantes, como en este caso, para clasificar hongos entre comestibles y venenosos.
-
 
 
 # Ejercicio 2: Preparación de los datos
@@ -200,7 +154,8 @@ Como los datos ya se encuentran sampleados (menos de 50.000 observaciones) y sin
   * cambiar los valores de las variables categóricas por palabras enteras en vez de letras.
   * quitar columnas que dependen de otras.
 
-La fuente del dataset especifica que las columnas 'gill-color', 'stem-surface', 'stem-color', 'veil-color' y 'spore-print-color' dependen de 'cap-color' y 'cap-surface', así que decidimos eliminar estas columnas correlacionadas para disminuir al máximo posible el ruido, que podría distorsionar nuestra clasificación binaria.
+Decidimos quitar de nuestro dataset las columnas 'gill-color', 'stem-surface', 'stem-color', 'veil-color' y 'spore-print-color' principalmente para no manejar tantas variables predictoras, pero también porque el dataset original aclaraba que dependían de 'cap-color' y 'cap-surface' y nos pareció que tendrían información similar.
+
 
 ```{r}
 mushrooms <- mushrooms[, !(names(mushrooms) %in% c("gill.color", "stem.surface", "stem.color", "veil.color", "spore.print.color"))]
@@ -232,23 +187,7 @@ mushrooms_renamed <- mushrooms %>%
 ```
 
 ```{r}
-unique(mushrooms_renamed$class)
-unique(mushrooms_renamed$cap.shape)
-unique(mushrooms_renamed$cap.surface)
-unique(mushrooms_renamed$cap.color)
-unique(mushrooms_renamed$does.bruise.or.bleed)
-unique(mushrooms_renamed$gill.attachment)
-unique(mushrooms_renamed$gill.spacing)
-unique(mushrooms_renamed$stem.root)
-unique(mushrooms_renamed$veil.type)
-unique(mushrooms_renamed$has.ring)
-unique(mushrooms_renamed$ring.type)
-unique(mushrooms_renamed$habitat)
-unique(mushrooms_renamed$season)
-```
-
-```{r}
-head(mushrooms_renamed$class)
+head(mushrooms_renamed)
 ```
 
 ### **Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
@@ -263,7 +202,6 @@ Comenzamos por analizar la distribución de algunas variables. En primer lugar n
 ```{r}
 num_edible <- sum(mushrooms_renamed$class == 'edible')
 num_poisonous <- sum(mushrooms_renamed$class == 'poisonous')
-
 prop_edible <- num_edible/(nrow(mushrooms_renamed))
 prop_poisonous <- num_poisonous/(nrow(mushrooms_renamed))
 
@@ -275,95 +213,54 @@ Veamos la distribución de algunas otras variables categóricas. En el gráfico 
 
 Sabemos que una distribución pareja de datos para cada variable permite que el modelo generalice mejor por tener información variada de cada categoría, por lo que la existencia de variables con una distribución desbalanceada podría suponer un problema para el entrenamiento. Puede que ocurra un *overfit* a la clase mayoritaria, lo cual dificulta la predicción cuando los datos pertenecen a las clases minoritarias. En el árbol esto se podría ver representado con cortes que separen a la categoría mayoritaria de las demás, y en consecuencia esto puede disminuir algunas métricas como el F1-score.
 
-```{r}
+```{r, out.width="90%", out.height="90%", fig.align = "center"}
 library(ggplot2)
 library(patchwork)
 
-color = "steelblue"
+color <- "steelblue"
 
-# Define individual plots
-p1 <- ggplot(mushrooms_renamed, aes(x = cap.shape)) +
-  geom_bar(fill = color) + 
-  ggtitle("Cap Shape") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
+create_plot <- function(data, variable, title) {
+  ggplot(data, aes_string(x = variable)) +
+    geom_bar(fill = color) + 
+    ggtitle(title) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+          axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          plot.title = element_text(size = 10, hjust = 0.5))
+}
 
-p2 <- ggplot(mushrooms_renamed, aes(x = cap.surface)) +
-  geom_bar(fill = color) + 
-  ggtitle("Cap Surface") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
 
-p3 <- ggplot(mushrooms_renamed, aes(x = cap.color)) +
-  geom_bar(fill = color) + 
-  ggtitle("Cap Color") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
+variables <- list(
+  cap.shape = "Cap Shape",
+  cap.surface = "Cap Surface",
+  cap.color = "Cap Color",
+  gill.attachment = "Gill Attachment",
+  gill.spacing = "Gill Spacing",
+  stem.root = "Stem Root",
+  ring.type = "Ring Type",
+  habitat = "Habitat"
+)
 
-p4 <- ggplot(mushrooms_renamed, aes(x = gill.attachment)) +
-  geom_bar(fill = color) + 
-  ggtitle("Gill Attachment") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
 
-p5 <- ggplot(mushrooms_renamed, aes(x = gill.spacing)) +
-  geom_bar(fill = color) + 
-  ggtitle("Gill Spacing") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
+plots <- lapply(names(variables), function(var) {
+  create_plot(mushrooms_renamed, var, variables[[var]])
+})
 
-p6 <- ggplot(mushrooms_renamed, aes(x = stem.root)) +
-  geom_bar(fill = color) + 
-  ggtitle("Stem Root") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8), 
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
+combined_plot <- (plots[[1]] | plots[[2]] | plots[[3]] | plots[[4]]) /
+                 (plots[[5]] | plots[[6]] | plots[[7]] | plots[[8]]) +
+  plot_layout(widths = c(4, 4))  
 
-p8 <- ggplot(mushrooms_renamed, aes(x = ring.type)) +
-  geom_bar(fill = color) +  
-  ggtitle("Ring Type") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
-
-p9 <- ggplot(mushrooms_renamed, aes(x = habitat)) +
-  geom_bar(fill = color) + 
-  ggtitle("Habitat") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        plot.title = element_text(size = 10, hjust = 0.5))
-
-# Combine all the plots into a wider grid layout
-combined_plot <- (p1 | p2 | p3 | p4) /
-                 (p5 | p6 | p8 | p9) +
-  plot_layout(widths = c(4, 4))  # Increase the widths for more space
-```
-
-```{r}
 print(combined_plot)
 ```
 
-Pasemos ahora a inspeccionar las variables númericas. Visualizamos los datos de una forma más intuitiva con los histogramas, y al superponerles las curvas normales correspondientes observamos que siguen ??? aproximadamente esta distribución.
+Pasemos ahora a inspeccionar las variables númericas. Visualizamos los datos de una forma más intuitiva con los histogramas, y al superponerles las curvas normales correspondientes observamos que siguen aproximadamente esta distribución (o más bien una distribución lognormal las primeras dos).
 
 ```{r}
 numeric_columns <- mushrooms_renamed[, c("cap.diameter", "stem.height", "stem.width")]
 summary(numeric_columns)
 ```
 
-```{r}
+```{r, out.width="70%", out.height="70%", fig.align = "center"}
 create_histogram_with_normal <- function(data, column_name, color) {
   mu <- mean(data[[column_name]], na.rm = TRUE)
   sigma <- sd(data[[column_name]], na.rm = TRUE)
@@ -372,53 +269,72 @@ create_histogram_with_normal <- function(data, column_name, color) {
     geom_histogram(aes(y = after_stat(density)), fill = color, bins = 30, alpha = 0.6) +
     stat_function(fun = dnorm, args = list(mean = mu, sd = sigma), color = "red", size = 0.5) +
     ggtitle(paste(column_name)) +
-    theme(plot.title = element_text(hjust = 0.5, size = 8),  # Título más pequeño
-      axis.text = element_text(size = 6),  # Texto del eje más pequeño
+    xlim(0, 30) +  
+    ylim(0, 0.2) +  
+    theme(plot.title = element_text(hjust = 0.5, size = 8),  
+      axis.text = element_text(size = 6), 
       axis.title = element_text(size = 7),
-      axis.title.x = element_blank())  # Título del eje más pequeño
+      axis.title.x = element_blank())  
 }
 
-# Crear los histogramas
 p1 <- create_histogram_with_normal(mushrooms_renamed, "cap.diameter", "steelblue")
 p2 <- create_histogram_with_normal(mushrooms_renamed, "stem.height", "steelblue")
 p3 <- create_histogram_with_normal(mushrooms_renamed, "stem.width", "steelblue")
 
-# Combinar los histogramas en una sola visualización
 combined_plot <- p1 / p2 / p3
-```
 
-```{r}
 print(combined_plot)
 ```
-Por último nos interesa analizar la correlación entre las variables, principalmente para saber si hay algunas variables más correlacionadas con nuestra variable objetivo que otras. Esto significaría que es posible que un modelo menos complejo (de menos variables) sea suficiente para predecirla.
+Por último nos interesa analizar la correlación entre las variables. Si miramos únicamente las variables numéricas observamos una correlación alta (0.7) entre 'stem width' y 'cap.diameter', y una correlación considerable (0.43 y 0.44) 'stem height' y las otras dos mencionadas. Esto podría significar que si una de ellas es utilizada en un corte de alto nivel, las demás posiblemente también ya que puede que provean información similar.
 
-```{r}
-#install.packages("PerformanceAnalytics")
-#library("PerformanceAnalytics")
+```{r, out.width="70%", out.height="70%", fig.align = "center"}
+library(corrplot)
+
+cor_matrix <- cor(numeric_columns, use = "complete.obs")
+
+corrplot(cor_matrix, method = "color", type = "upper", 
+         tl.col = "black", tl.srt = 30, tl.cex = 0.5, addCoef.col = "black", number.cex = 0.4, 
+         col = colorRampPalette(c("lightblue", "white", "lightcoral"))(200))
+
 ```
+También nos interesa saber si hay algunas variables más correlacionadas con nuestra variable objetivo que otras. Esto significaría que es posible que un modelo menos complejo (de menos variables) sea suficiente para predecirla. Vemos que para las varibales binarias:
+
+* 'does bruise or bleed' no parece tener correlación con la variable a predecir, ya que tanto para las instancias de 'true' como para las 'false' la proporción que es comestible es alrededor del 50%.
+* cuando 'has ring' es falsa también no hay una relación aparente con \texttt{class}, pero cuando sí tiene anillo parece haber una correalción positiva con la posibilidad de que sea venenoso (0.605)
 
 ```{r}
-#chart.Correlation(numeric_columns, pch=19)
+prop_bruise <- round(prop.table(table(mushrooms_renamed$class, mushrooms_renamed$does.bruise.or.bleed), margin = 2), 3)
+
+prop_ring <- round(prop.table(table(mushrooms_renamed$class, mushrooms_renamed$has.ring), margin = 2), 3)
+
+cat("Proportion Table for 'does.bruise.or.bleed':\n")
+print(prop_bruise)
+
+cat("\nProportion Table for 'has.ring':\n")
+print(prop_ring)
+
 ```
 
 
 # Ejercicio 3: Construcción de un árbol de decisión básico
 
+Comenzamos convirtiendo las variables a tipo factor.
+
 ```{r}
-mushrooms_renamed$cap.shape <- as.factor(mushrooms_renamed$cap.shape)
-mushrooms_renamed$cap.surface <- as.factor(mushrooms_renamed$cap.surface)
-mushrooms_renamed$cap.color <- as.factor(mushrooms_renamed$cap.color)
-mushrooms_renamed$gill.attachment <- as.factor(mushrooms_renamed$gill.attachment)
-mushrooms_renamed$gill.spacing <- as.factor(mushrooms_renamed$gill.spacing)
-mushrooms_renamed$stem.root <- as.factor(mushrooms_renamed$stem.root)
-mushrooms_renamed$ring.type <- as.factor(mushrooms_renamed$ring.type)
-mushrooms_renamed$veil.type <- as.factor(mushrooms_renamed$veil.type)
-mushrooms_renamed$habitat <- as.factor(mushrooms_renamed$habitat)
-mushrooms_renamed$season <- as.factor(mushrooms_renamed$season)
-mushrooms_renamed$class <- as.factor(mushrooms_renamed$class)
-mushrooms_renamed$does.bruise.or.bleed <- as.factor(mushrooms_renamed$does.bruise.or.bleed)
-mushrooms_renamed$has.ring <- as.factor(mushrooms_renamed$has.ring)
+convert_to_factors <- function(df, columns) {
+  df[columns] <- lapply(df[columns], as.factor)
+  return(df)
+}
+
+cols <- c('cap.shape', 'cap.surface', 'cap.color', 'gill.attachment',
+                     'gill.spacing', 'stem.root', 'ring.type', 'veil.type',
+                     'habitat', 'season', 'class', 'does.bruise.or.bleed', 'has.ring')
+
+mushrooms_renamed <- convert_to_factors(mushrooms_renamed, cols)
 ```
+
+A continuación, creamos los subsets de datos con un 70% para entrenamiento, 15% para validación y 15% para testing, tomando observaciones aleatorias.
+
 
 ```{r}
 library(dplyr)
@@ -443,9 +359,9 @@ test_set <- mushrooms_renamed[test_indices, ]
 
 Los parámetros e hiperparámetros que utilizamos son los que vienen por defecto en \texttt{rpart}. Los principales hiperparámetros son:
 
-* minsplit = define el número mínimo de observaciones que debe haber en un nodo para realizar un corte (split). Por defecto el valor de este hiperparámetro es 20. Un valor elevado puede producir un árbol con menor profundida, pero menos riesgo de sufrir de overfitting. Aunque, por el otro lado, si es demasiado elevado puede que no realicemos los suficientes cortes para realizar una predicción útil.
+* minsplit = define el número mínimo de observaciones que debe haber en un nodo para realizar un corte (split). Por defecto el valor de este hiperparámetro es 20. Un valor elevado puede producir un árbol con menor profundidad, pero menos riesgo de sufrir de overfitting. Aunque, por el otro lado, si es demasiado elevado puede que no realicemos los suficientes cortes para realizar una predicción útil.
 
-* minbucket = define el número mínimo de observaciones que debe haber por hoja. Por defecto su valor es minsplit/3 (si minsplit también se deja por defecto, sería casi 7). Mientras más bajo sea mayor será la specififity, es decir la proporción de negativos identificados correctamente como tal. Sin embargo, un nivel muy bajo cercano a 1 puede correr el riesgo de realizar overfitting sobre el modelo.
+* minbucket = define el número mínimo de observaciones que debe haber por hoja. Por defecto su valor es minsplit/3 (si minsplit también se deja por defecto, sería casi 7). Un nivel muy bajo cercano a 1 puede correr el riesgo de realizar overfitting sobre el modelo.
 
 * maxdepth = define la profundidad máxima del árbol. Por defecto toma un valor de 30. Similar a los parámetros anteriores, un valor muy alto puede causar overfitting y un valor muy bajo puede resultar en predicciones malas.
 
@@ -459,21 +375,19 @@ library(rpart)
 tree_model <- rpart(class ~ ., 
                     data = train_set, 
                     method = "class")  #dejamos los parametros por defecto
-```
 
-```{r}
 library(rpart.plot)
 
 rpart.plot(tree_model)
 ```
 
-El primer corte utiliza la variable 'stem.width' y con esta se logra un primer split bastante parejo: un 57% de los tallos tienen un ancho mayor a los $8.3$ centímetros y se clasifican como venenosos, mientras que el 43% restante van a la categoría de comestibles. Luego otros dos criterios de decisión importantes son la superficie y el color de la parte superior del hongo. 
+El primer corte utiliza la variable 'stem.width' y con esta se logra un primer split bastante parejo: un 57% de los tallos tienen un ancho mayor a los $8.3$ centímetros y se clasifican como venenosos, mientras que el 43% restante van a la categoría de comestibles. Luego, otros dos criterios de decisión importantes son la superficie y el color de la parte superior del hongo.
 
 En el segundo nivel ya se comienzan a tomar algunas decisiones finales sobre la clasificación. Por ejemplo, si ya se había pre-clasificado como venenoso por tener un tallo ancho y luego no tiene uno de los colores listados (por defecto deja como opciones el rosa, rojo o verde), ya se determina que un 8% del total de hongos que cumple con esas características es venenoso. Por el lado derecho del árbol un 26% también se clasifica como venenoso si no tiene un cierto tipo de superficie.
 
 Las características sobre la superficie reaparecen en otro niveles para afinar aun mas la clasificación. Otras variables utilizadas son 'cap.shape' (varias veces), 'gill.attachment', 'stem.height' y 'cap.diameter'. En el último nivel antes de las hojas la última clasificación se realiza en base al 'ring.type'.
 
-Las variables 'habitat', 'season', 'does-bruise-or-bleed', 'gill.spacing', 'stem.root', 'veil.type' y 'has.ring' no fueron usadas. #REVISAR CORR
+Las variables 'habitat', 'season', 'does-bruise-or-bleed', 'gill.spacing', 'stem.root', 'veil.type' y 'has.ring' no fueron usadas. 
 
 
 # Ejercicio 4: Evaluación del árbol de decisión básico
@@ -481,12 +395,8 @@ Las variables 'habitat', 'season', 'does-bruise-or-bleed', 'gill.spacing', 'stem
 Comenzamos evaluando las predicciones sobre el conjunto de *testing*, tanto para las probabilidades como la clase predicha. A partir de esots datos podemos comenzar a calcular las métricas que nos interesan.
 
 ```{r}
-# Instalacion y/o importe de las librerias
-# install.packages('caret')
 library(caret)
-```
 
-```{r}
 # Predicciones de probabilidades y de clases
 pred_prob <- predict(tree_model, test_set, type = "prob")  # Probabilidades predichas
 pred_class <- predict(tree_model, test_set, type = "class")  # Clases predichas
@@ -498,12 +408,13 @@ Hacemos la Matriz de Confusión:
 
 ```{r}
 conf_matrix <- confusionMatrix(pred_class, test_set$class)
-cat("Matriz de Confusion:\n")
+print("Matriz de Confusión:")
 print(conf_matrix$table)
 ```
+Trasponemos para verla como visto en clase (las predicciones en las columnas y el valor verdadero en las filas):
 
 ```{r}
-print(t(conf_matrix$table)) # traspongo para que sea como visto en clase
+print(t(conf_matrix$table)) 
 ```
 
 Lo que obtenemos es:
@@ -529,7 +440,7 @@ $$= \frac{5290}{6911} = 0.7654464$$
 Verificamos el número obtenido con R y con el método de ['Accuracy'] de la misma matriz de confusión.
 
 ```{r}
-# 
+# indexamos la matriz original antes de trasponerla
 TP <- conf_matrix$table[1, 1]
 FP <- conf_matrix$table[1, 2]
 FN <- conf_matrix$table[2, 1]
@@ -600,9 +511,9 @@ Esto significa que el accuracy del modelo en predicir la clase \texttt{edible} e
 ### **ROC-AUC Score**
 
 Buscamos ver que tan bien el modelo tiene la capacidad de separar o clasificar las clases. 
-Esto se obtiene graficando la relación entre el *True Positive Rate* (o Recall) y el *False Positive Rate*. Es decir, de los que efectivamente son \texttt{edible}, en que proporción acierta y en cuánto erra. En la situación ideal, el TRP es 1.0 mientras que el FPR es 0.0, es decir que acierta siempre (y por ende nunca erra en la clasificación). Mientras más se acerque la curva ROC a esta forma, mejor será nuestro modelo. Medimos el área debajo de esta curva para calcular la métrica AUC-ROC.
+Esto se obtiene graficando la relación entre el *True Positive Rate* (o Recall) y el *False Positive Rate*. Es decir, de los que efectivamente son \texttt{edible}, en que proporción acierta y en cuánto erra. En la situación ideal, el TPR es 1.0 mientras que el FPR es 0.0, es decir que acierta siempre (y por ende nunca erra en la clasificación). Mientras más se acerque la curva ROC a esta forma, mejor será nuestro modelo. Medimos el área debajo de esta curva para calcular la métrica AUC-ROC.
 
-```{r}
+```{r, out.width="70%", out.height="70%", fig.align = "center"}
 # Install PRROC package if not already installed
 # install.packages("PRROC")
 library(PRROC)
@@ -634,33 +545,32 @@ $$AUC-ROC = 0.7921915$$
 
 Esto significa que como $0.7921915 > 0.5$, el modelo se ejecuta mejor que hacer random guessing.
 
-
 Por lo tanto, evaluamos el modelo de árbol de decisión sobre el conjunto de testeo, calculando varias métricas claves. La matriz de confusión mostró un balance aceptable entre verdaderos positivos y negativos, aunque con un número considerable de falsos positivos y negativos. El accuracy fue del 76.5%, lo que indica que el modelo clasifica correctamente la mayoría de las instancias.
 
 La precisión fue del 77.2% y el recall del 67.3%, lo que sugiere que el modelo es más confiable en predecir instancias positivas que en capturar todas las positivas existentes. El F1-score combinó estos aspectos y alcanzó un valor de 0.719.
 
 Finalmente, el AUC-ROC de 0.792 indica que el modelo tiene una buena capacidad para distinguir entre las clases, superando el azar. En resumen, el modelo tiene un desempeño razonable.
 
+
 # Ejercicio 5: Optimización del modelo
 
-En esta sección, optimizaremos el modelo de árbol de decisión ajustando los hiperparámetros maxdepth, minsplit, y minbucket. La optimización se realizará evaluando el rendimiento del modelo en términos de AUC-ROC sobre un conjunto de validación. Exploraremos varias combinaciones de estos hiperparámetros para identificar la configuración que maximice el AUC-ROC.
+En esta sección, optimizaremos el modelo de árbol de decisión ajustando los hiperparámetros *maxdepth*, *minsplit*, y *minbucket*. La optimización se realizará evaluando el rendimiento del modelo en términos de AUC-ROC sobre un conjunto de validación. Exploraremos varias combinaciones de estos hiperparámetros para identificar la configuración que maximice esta métrica.
 
-Primero, definimos una función opt_hiperparams que ajusta el modelo de árbol de decisión para cada combinación de hiperparámetros y calcula el AUC-ROC en el conjunto de validación.
+Primero, definimos una función \texttt{opt.hiperparams} que ajusta el modelo de árbol de decisión para cada combinación de hiperparámetros y calcula el AUC-ROC en el conjunto de validación.
 
 ```{r}
 library(pROC)
 opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, minbucket_set) {
-  # Initialize a data frame to store results
+ 
   results <- data.frame(maxdepth = integer(),
                          minsplit_val = integer(),
                          minbucket_val = integer(),
                          auc = numeric())
   
-  # Loop through all combinations of hyperparameters
+  # grid search de hiperparametros
   for (depth in maxdepth_set) {
     for (split in minsplit_set) {
       for (bucket in minbucket_set) {
-        # Adjust the model
         tree_model_modified <- rpart(class ~ ., 
                                      data = train_data, 
                                      method = "class", 
@@ -670,10 +580,10 @@ opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, 
                                                              cp = 0, 
                                                              xval = 0))
         
-        # Predict probabilities on the validation set
+        # predecir en el set de validacion
         pred_probs <- predict(tree_model_modified, newdata = valid_data, type = "prob")[, 2]
         
-        # Calculate AUC-ROC
+        # AUC-ROC
         roc_curve <- roc(valid_data$class, pred_probs)
         auc_value <- auc(roc_curve)
         
@@ -689,32 +599,15 @@ opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, 
 }
 
 ```
+Ahora, definimos los conjuntos de valores que probaremos para los hiperparámetros. Ejecutamos la función \texttt{opt.hiperparams} para encontrar la combinación óptima.
 
-VISUALIZACION!!!!
-
-```{r}
-
-
-```
-
-Ahora, definimos los conjuntos de valores que probaremos para los hiperparámetros maxdepth, minsplit, y minbucket.
-
-```{r}
+```{r,  results='hide'}
 maxdepth_options <- c(3, 5, 7, 9, 11)
-minsplit_options <- c(1000, 3000, 6000, 10000, 20000) #si ponemos 1000 como minimo elige eso (y maxdepth 9) y el aucroc queda en 87% y el TPR aumenta con FPR menor (sin 1000 y con opc 2000, 5000, 7000 elige 2000 y bajan ambos, bien por el FPR)
+minsplit_options <- c(1000, 3000, 6000, 10000, 20000) 
 minbucket_options <- c(50, 100, 500, 1000, 5000)
-```
 
-Ejecutamos la función opt_hiperparams para encontrar la combinación óptima de hiperparámetros.
-
-```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
-# Identificar el mejor modelo basado en AUC
 results <- opt_hiperparams(train_set, valid_set, maxdepth_options, minsplit_options, minbucket_options)
-```
 
-A continuación, identificamos los hiperparámetros que maximizaron el AUC-ROC.
-
-```{r}
 best_model_params <- results[which.max(results$auc),]
 best_maxdepth <- best_model_params$maxdepth
 best_maxdepth <- as.integer(as.character(best_maxdepth))
@@ -722,6 +615,33 @@ best_maxdepth <- as.integer(as.character(best_maxdepth))
 best_minsplit <- best_model_params$minsplit_val
 best_minbucket <- best_model_params$minbucket_val
 ```
+
+Vemos el rendimiento para cada combinación de hiperparámetros. Observamos que para valores bajos de *minsplit* hay mucha diferencia en el AUC-ROC según la combinación de *maxdepth* y *minbucket* que tomemos. Si tomamos como ejemplo  minsplit = 1000, mientras mayor sea el maxdepth mejor será el rendimiento, aunque minbucket también influye (por ejemplo con una profundidad de 11 y minbucket 1000 obtenemos pero AUC ROC que con profundidad de 5 y minbucket 50).
+
+Sin embargo, a medida que aumenta el minsplit los otros hiperparámetros dejan de ser tan relevantes. Incluso para el minsplit de 20 000 (que en nuestro caso es casi la mitad del dataset) el AUC ROC es casi igual para todas las combinaciones de minsplit y minbucket (están superpuestos y por eso no se observan en el gráfico)
+
+```{r}
+ggplot(results, aes(x = minsplit_val, y = auc)) +
+  geom_point(aes(color = factor(maxdepth), shape = factor(minbucket_val)), size = 3, alpha = 0.7) +
+  scale_shape_manual(values = c(15, 16, 17, 18, 10)) +  # Custom shapes for better visibility
+  scale_color_brewer(palette = "Set1") +  # Customize colors to highlight maxdepth 9
+  scale_y_continuous(breaks = seq(0.45, 0.9, by = 0.05), 
+                     labels = function(x) format(x, nsmall = 2)) +  # Custom labels for y-axis
+  labs(x = "Min Split Value",
+       y = "AUC-ROC",
+       title = "AUC-ROC by Min Split with Different Max Depth and Min Bucket Combinations",
+       color = "Max Depth",
+       shape = "Min Bucket") +
+  theme_minimal()
+```
+
+```{r}
+print(paste("Max depth *: ",best_maxdepth))
+print(paste("Min bucket *: ",best_minbucket))
+print(paste("Min split *: ",best_minsplit))
+```
+
+Aclaración: los valores de AUC ROC para maxdepth = 9 no se visualizan porque se superponen con otros. Por ejemplo, el \texttt{maxdepth} óptimo que calculamos arriba es 9, pero da el mismo AUC que con una profundidad de 11 (y es este punto el que figura en el gráfico).
 
 En este paso, seleccionamos la configuración de hiperparámetros que produjo el mayor AUC-ROC en el conjunto de validación. Esta configuración se usará para ajustar un nuevo modelo que será evaluado en el conjunto de testeo.
 
@@ -737,24 +657,12 @@ new_model <- rpart(class ~ .,
                    cp = 0, 
                    xval = 0)
 
-
-
 # Hacer predicciones en el conjunto de testeo
 test_predictions <- predict(new_model, newdata = test_set, type = "prob")[,2]
 
 # Calcular el AUC-ROC
 roc_curve <- roc(test_set$class, test_predictions)
-auc_value <- auc(roc_curve)
-
-auc_value <- roc_curve$auc
-```
-
-Este bloque de código ajusta el modelo final con los mejores valores de los hiperparámetros identificados y luego evalúa su rendimiento en el conjunto de testeo, calculando el AUC-ROC. Este valor se comparará con el AUC-ROC obtenido con el modelo básico.
-
-```{r}
-print(paste("Max depth *: ",best_maxdepth))
-print(paste("Min bucket *: ",best_minbucket))
-print(paste("Min split *: ",best_minsplit))
+auc_opt <- auc(roc_curve)
 ```
 
 Finalmente, visualizamos el modelo optimizado y evaluamos sus métricas de rendimiento.
@@ -765,11 +673,10 @@ rpart.plot(new_model)
 ```
 
 ```{r}
-print(paste("AUC-ROC Score:", auc_value))
+print(paste("AUC-ROC Score:", auc_opt))
 ```
 
-```{r}
-# Plot de ROC curve
+```{r, out.width="70%", out.height="70%", fig.align = "center"}
 plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1.0,0.0))
 ```
 
@@ -782,7 +689,9 @@ matrix <- confusionMatrix(prediccion, test_set$class)
 print("Matriz de Confusión:")
 
 print(t(matrix$table))
+```
 
+```{r}
 TP <- matrix$table[1, 1]
 FP <- matrix$table[1, 2]
 FN <- matrix$table[2, 1]
@@ -790,10 +699,7 @@ TN <- matrix$table[2, 2]
 
 TPR <- TP / (TP + FN)
 FPR <- FP / (FP + TN)
-```
 
-```{r}
-# Print the metrics
 print(paste("True Positive Rate (TPR):", TPR))
 print(paste("False Positive Rate (FPR):", FPR))
 ```
@@ -830,7 +736,7 @@ En resumen, la optimización de los hiperparámetros ha llevado a un árbol más
 
 En este ejercicio, exploraremos cómo la introducción de valores faltantes (NA) en diferentes proporciones afecta el rendimiento de un modelo de árbol de decisión optimizado. Para ello, se crearán tres conjuntos de datos con 20%, 50% y 75% de valores faltantes, respectivamente, y se analizará el impacto de estos valores en la performance del modelo.
 
-En este primer bloque de código, definimos una función add_na_to_df que nos permite agregar valores faltantes (NA) a un conjunto de datos en una proporción específica.
+En este primer bloque de código, definimos una función \texttt{add.na.to.df} que nos permite agregar valores faltantes (NA) a un conjunto de datos en una proporción específica.
 
 Simular la pérdida de datos en diferentes grados nos permite evaluar la robustez del modelo frente a escenarios donde la información está incompleta.
 
@@ -852,10 +758,7 @@ add_na_to_df <- function(df, na_fraction) {
   
   return(df_na)
 }
-```
 
-Se crean tres nuevos conjuntos de datos para entrenamiento, validación y testeo con diferentes niveles de valores faltantes (20%, 50%, 75%). Esto permite evaluar cómo se comporta el modelo bajo diferentes niveles de datos incompletos.
-```{r}
 veinte_train <- add_na_to_df(train_set, 0.20)
 cincuenta_train <- add_na_to_df(train_set, 0.50)
 setentaicinco_train <- add_na_to_df(train_set, 0.75)
@@ -871,7 +774,6 @@ setentaicinco_test <- add_na_to_df(test_set, 0.75)
 
 Sobre cada dataset nuevo de los datos de training, verificamos que haya la cantidad esperada de NAs:
 
-Antes de seguir con la optimización, verificamos que los conjuntos de datos generados contengan el número esperado de valores faltantes.
 ```{r}
 total <- nrow(train_set)
 num_20 <- ceiling(total * 0.2)
@@ -882,7 +784,7 @@ print(paste("Con 50% NAs debería haber ",num_50 ,"datos faltantes"))
 print(paste("Con 75% NAs debería haber ",num_75 ,"datos faltantes"))
 ```
 
-Revisamos que efectivamente incorporamos estos datos correctamente:
+Antes de seguir con la optimización, verificamos que los conjuntos de datos generados contengan el número esperado de valores faltantes:
 
 ```{r}
 # Verificar los resultados con algunas columnas samples
@@ -891,16 +793,13 @@ summary(cincuenta_train$gill.attachment)["NA's"]
 summary(setentaicinco_train$veil.type)["NA's"]
 ```
 
-Ahora, optimizamos el modelo de árbol de decisión para cada uno de los conjuntos de datos generados con NA, utilizando la misma función de optimización de hiperparámetros utilizada en ejercicio 5.
+Ahora, optimizamos el modelo de árbol de decisión para cada uno de los conjuntos de datos generados con NA, utilizando la misma función de optimización de hiperparámetros utilizada en ejercicio 5. Seleccionamos los mejores valores de hiperparámetros para cada conjunto de datos con NA, basándonos en el AUC obtenido en validación.
 
-```{r, echo=TRUE, results='hide', message=FALSE, warning=FALSE}
+```{r}
 results_veinte <- opt_hiperparams(veinte_train, veinte_valid, maxdepth_options, minsplit_options, minbucket_options)
 results_cincuenta <- opt_hiperparams(cincuenta_train, cincuenta_valid, maxdepth_options, minsplit_options, minbucket_options)
 results_setentaicinco <- opt_hiperparams(setentaicinco_train, setentaicinco_valid, maxdepth_options, minsplit_options, minbucket_options)
-```
 
-Seleccionamos los mejores valores de hiperparámetros para cada conjunto de datos con NA, basándonos en el AUC obtenido en validación.
-```{r}
 find_best_params <- function(results) {
   best_model_params <- results[which.max(results$auc),]
   best_maxdepth <- as.integer(as.character(best_model_params$maxdepth))
@@ -934,22 +833,20 @@ train_and_evaluate <- function(train_set, test_set, best_params) {
                      cp = 0, 
                      xval = 0)
   
-  # Make predictions
   test_predictions <- predict(new_model, newdata = test_set, type = "prob")[,2]
-  # Calculate AUC
+  
   roc_curve <- roc(test_set$class, test_predictions)
   auc_value <- auc(roc_curve)
   
   return(auc_value)
 }
 
-# Evaluate each model
 auc_veinte <- train_and_evaluate(veinte_train, veinte_test, best_params_veinte)
 auc_cincuenta <- train_and_evaluate(cincuenta_train, cincuenta_test, best_params_cincuenta)
 auc_setentaicinco <- train_and_evaluate(setentaicinco_train, setentaicinco_test, best_params_setentaicinco)
 ```
 
-Por lo cual, entrenamos un nuevo modelo con los mejores hiperparámetros obtenidos para cada nivel de NA y calculamos su AUC-ROC en el conjunto de testeo. Esto nos permite medir cómo el rendimiento del modelo se ve afectado cuando se enfrenta a datos incompletos.
+Esto nos permite medir cómo el rendimiento del modelo se ve afectado cuando se enfrenta a datos incompletos.
 
 ```{r}
 print(paste("Veinte Train AUC:", auc_veinte))
@@ -963,8 +860,37 @@ Los valores muestran cómo el AUC del modelo disminuye a medida que aumenta la p
 
 Los resultados obtenidos indican que la presencia de valores faltantes tiene un impacto negativo en el rendimiento del modelo. Con un 20% de NA, el modelo todavía mantiene una buena capacidad predictiva, pero a medida que aumentamos el porcentaje de NA a 50% y 75%, el rendimiento disminuye significativamente, lo que subraya la importancia de manejar adecuadamente los datos incompletos en la práctica.
 
+```{r, out.width="70%", out.height="70%", fig.align = "center"}
+auc_results <- data.frame(
+  Percentage_NA = c(0, 20, 50, 75),
+  AUC_ROC = c(auc_opt, auc_veinte, auc_cincuenta, auc_setentaicinco)
+)
+
+ggplot(auc_results, aes(x = Percentage_NA, y = AUC_ROC)) +
+  geom_line(color = "steelblue", lwd = 2) +
+  geom_point(color = "steelblue", size = 4) +
+  labs(title = "AUC-ROC vs. Porcentaje de Valores Faltantes",
+       x = "Porcentaje de Valores Faltantes",
+       y = "AUC-ROC") +
+  scale_y_continuous(limits = c(0.5, 1), breaks = seq(0, 1, by = 0.1)) +
+  scale_x_continuous(limits = c(0, 80), breaks = c(0, 20, 50, 75)) +
+  theme_minimal()
+```
 
 # Ejercicio 8: Conclusiones y discusión
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
