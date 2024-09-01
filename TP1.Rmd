@@ -22,6 +22,19 @@ knitr::opts_chunk$set(
 options(width = 50)  
 ```
 
+```{r, echo=FALSE}
+#importamos librerias
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(corrplot)
+library(rpart)
+library(rpart.plot)
+library(caret)
+library(PRROC)
+library(pROC)
+```
+
 # Ejercicio 1: Introducción al problema
 
 El dataset elegido tiene como origen:\
@@ -165,9 +178,6 @@ ncol(mushrooms)
 Las variables categóricas toman valores de letras que pueden ser confusos, ya que no siempre reflejan de manera clara la palabra que representan (por ejemplo 'k' se utiliza en lugar de 'black'), y pueden repetirse entre columnas sin necesariamente significar lo mismo. Para que el manejo de los datos y las leyendas de los gráficos sean más claras decidimos reemplazarlas por las palabras correspondientes, especificadas anteriormente.
 
 ```{r}
-#install.packages("dplyr")
-library(dplyr)
-
 mushrooms_renamed <- mushrooms %>%
   mutate(
     class = recode(class, 'e' = 'edible', 'p' = 'poisonous'),
@@ -187,7 +197,7 @@ mushrooms_renamed <- mushrooms %>%
 ```
 
 ```{r}
-head(mushrooms_renamed)
+head(mushrooms_renamed) #verificamos que se hayan cambiado los nombres de las variables
 ```
 
 ### **Análisis exploratorio de datos: Estadísticas descriptivas y visualizaciones de las variables principales**
@@ -214,9 +224,6 @@ Veamos la distribución de algunas otras variables categóricas. En el gráfico 
 Sabemos que una distribución pareja de datos para cada variable permite que el modelo generalice mejor por tener información variada de cada categoría, por lo que la existencia de variables con una distribución desbalanceada podría suponer un problema para el entrenamiento. Puede que ocurra un *overfit* a la clase mayoritaria, lo cual dificulta la predicción cuando los datos pertenecen a las clases minoritarias. En el árbol esto se podría ver representado con cortes que separen a la categoría mayoritaria de las demás, y en consecuencia esto puede disminuir algunas métricas como el F1-score.
 
 ```{r, out.width="90%", out.height="90%", fig.align = "center"}
-library(ggplot2)
-library(patchwork)
-
 color <- "steelblue"
 
 create_plot <- function(data, variable, title) {
@@ -261,14 +268,14 @@ summary(numeric_columns)
 ```
 
 ```{r, out.width="70%", out.height="70%", fig.align = "center"}
-create_histogram_with_normal <- function(data, column_name, color) {
-  mu <- mean(data[[column_name]], na.rm = TRUE)
-  sigma <- sd(data[[column_name]], na.rm = TRUE)
+create_hist <- function(data, col_name, color) {
+  mu <- mean(data[[col_name]])
+  sigma <- sd(data[[col_name]])
   
-  ggplot(data, aes_string(x = column_name)) +
+  ggplot(data, aes_string(x = col_name)) +
     geom_histogram(aes(y = after_stat(density)), fill = color, bins = 30, alpha = 0.6) +
     stat_function(fun = dnorm, args = list(mean = mu, sd = sigma), color = "red", size = 0.5) +
-    ggtitle(paste(column_name)) +
+    ggtitle(paste(col_name)) +
     xlim(0, 30) +  
     ylim(0, 0.2) +  
     theme(plot.title = element_text(hjust = 0.5, size = 8),  
@@ -277,9 +284,9 @@ create_histogram_with_normal <- function(data, column_name, color) {
       axis.title.x = element_blank())  
 }
 
-p1 <- create_histogram_with_normal(mushrooms_renamed, "cap.diameter", "steelblue")
-p2 <- create_histogram_with_normal(mushrooms_renamed, "stem.height", "steelblue")
-p3 <- create_histogram_with_normal(mushrooms_renamed, "stem.width", "steelblue")
+p1 <- create_hist(mushrooms_renamed, "cap.diameter", "steelblue")
+p2 <- create_hist(mushrooms_renamed, "stem.height", "steelblue")
+p3 <- create_hist(mushrooms_renamed, "stem.width", "steelblue")
 
 combined_plot <- p1 / p2 / p3
 
@@ -288,8 +295,6 @@ print(combined_plot)
 Por último nos interesa analizar la correlación entre las variables. Si miramos únicamente las variables numéricas observamos una correlación alta (0.7) entre 'stem width' y 'cap.diameter', y una correlación considerable (0.43 y 0.44) 'stem height' y las otras dos mencionadas. Esto podría significar que si una de ellas es utilizada en un corte de alto nivel, las demás posiblemente también ya que puede que provean información similar.
 
 ```{r, out.width="70%", out.height="70%", fig.align = "center"}
-library(corrplot)
-
 cor_matrix <- cor(numeric_columns, use = "complete.obs")
 
 corrplot(cor_matrix, method = "color", type = "upper", 
@@ -304,7 +309,6 @@ También nos interesa saber si hay algunas variables más correlacionadas con nu
 
 ```{r}
 prop_bruise <- round(prop.table(table(mushrooms_renamed$class, mushrooms_renamed$does.bruise.or.bleed), margin = 2), 3)
-
 prop_ring <- round(prop.table(table(mushrooms_renamed$class, mushrooms_renamed$has.ring), margin = 2), 3)
 
 cat("Proportion Table for 'does.bruise.or.bleed':\n")
@@ -321,9 +325,9 @@ print(prop_ring)
 Comenzamos convirtiendo las variables a tipo factor.
 
 ```{r}
-convert_to_factors <- function(df, columns) {
-  df[columns] <- lapply(df[columns], as.factor)
-  return(df)
+convert_to_factors <- function(data, columns) {
+  data[columns] <- lapply(data[columns], as.factor)
+  return(data)
 }
 
 cols <- c('cap.shape', 'cap.surface', 'cap.color', 'gill.attachment',
@@ -337,11 +341,11 @@ A continuación, creamos los subsets de datos con un 70% para entrenamiento, 15%
 
 
 ```{r}
-library(dplyr)
 set.seed(42) #semilla para replicabilidad
 
 n <- nrow(mushrooms_renamed)
-indices <- sample(1:n) #'mezclamos' primero el orden de las filas, para luego solo tomar de la 1:70%, 70%-85% y 85%-100%
+indices <- sample(1:n) #tomamos indices aleatorios, es decir filas aleatorias, para luego solo tomar del 1-70% de esos indices (ya sabemos que no son filas ordenadas), del 70-85% y del 85-100%
+
 train_size <- floor(0.7 * n)
 valid_size <- floor(0.15 * n)
 
@@ -370,13 +374,9 @@ Otros hiperparámetros son cp, xval, maxcompete, maxsurrogate, usersurrogate y s
 ### **Estructura del árbol binario**
 
 ```{r}
-library(rpart)
-
 tree_model <- rpart(class ~ ., 
                     data = train_set, 
                     method = "class")  #dejamos los parametros por defecto
-
-library(rpart.plot)
 
 rpart.plot(tree_model)
 ```
@@ -395,9 +395,6 @@ Las variables 'habitat', 'season', 'does-bruise-or-bleed', 'gill.spacing', 'stem
 Comenzamos evaluando las predicciones sobre el conjunto de *testing*, tanto para las probabilidades como la clase predicha. A partir de esots datos podemos comenzar a calcular las métricas que nos interesan.
 
 ```{r}
-library(caret)
-
-# Predicciones de probabilidades y de clases
 pred_prob <- predict(tree_model, test_set, type = "prob")  # Probabilidades predichas
 pred_class <- predict(tree_model, test_set, type = "class")  # Clases predichas
 ```
@@ -450,7 +447,7 @@ TN <- conf_matrix$table[2, 2]
 Accuracy <- (TP + TN) / (TP + FN + FP + TN)
 print(paste("Accuracy: ", Accuracy))
 
-# Validacion
+# Validacion del cálculo manual
 print(paste("Accuracy (conf matrix): ", conf_matrix$overall['Accuracy']))
 ```
 
@@ -471,7 +468,7 @@ $$= \frac{2075}{2075 + 613} = 0.7719494$$
 Precision <- TP/(TP + FP)
 Precision
 
-# Validacion
+# Validacion del cálculo manual
 print(paste("Precision (conf matrix): ", conf_matrix$byClass['Pos Pred Value']))
 ```
 Esto significa que alrededor de 77.2% del tiempo cuando el modelo predice la clase \texttt{edible}, acierta.
@@ -487,7 +484,7 @@ En R:
 Recall <- TP/(TP + FN)
 print(paste("Recall: ", Recall))
 
-# Validacion
+# Validacion del cálculo manual
 print(paste("Recall: ", conf_matrix$byClass['Sensitivity']))
 ```
 
@@ -514,16 +511,10 @@ Buscamos ver que tan bien el modelo tiene la capacidad de separar o clasificar l
 Esto se obtiene graficando la relación entre el *True Positive Rate* (o Recall) y el *False Positive Rate*. Es decir, de los que efectivamente son \texttt{edible}, en que proporción acierta y en cuánto erra. En la situación ideal, el TPR es 1.0 mientras que el FPR es 0.0, es decir que acierta siempre (y por ende nunca erra en la clasificación). Mientras más se acerque la curva ROC a esta forma, mejor será nuestro modelo. Medimos el área debajo de esta curva para calcular la métrica AUC-ROC.
 
 ```{r, out.width="70%", out.height="70%", fig.align = "center"}
-# Install PRROC package if not already installed
-# install.packages("PRROC")
-library(PRROC)
-
-# Calculate ROC curve using PRROC
 roc_obj <- roc.curve(scores.class0 = pred_prob[, "edible"], 
                      weights.class0 = test_set$class == "edible",
                      curve = TRUE)
 
-# Plot the ROC curve
 plot(roc_obj$curve[, 1], roc_obj$curve[, 2], 
      type = "l", 
      col = "blue", 
@@ -532,7 +523,7 @@ plot(roc_obj$curve[, 1], roc_obj$curve[, 2],
      ylab = "True Positive Rate (TPR)", 
      main = "ROC Curve")
 
-# Diagonal line representing random classifier
+# Línea diagonal = resultado de una clasificación random
 abline(a = 0, b = 1, lty = 2, col = "red")
 ```
 
@@ -559,7 +550,6 @@ En esta sección, optimizaremos el modelo de árbol de decisión ajustando los h
 Primero, definimos una función \texttt{opt.hiperparams} que ajusta el modelo de árbol de decisión para cada combinación de hiperparámetros y calcula el AUC-ROC en el conjunto de validación.
 
 ```{r}
-library(pROC)
 opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, minbucket_set) {
  
   results <- data.frame(maxdepth = integer(),
@@ -599,9 +589,11 @@ opt_hiperparams <- function(train_data, valid_data, maxdepth_set, minsplit_set, 
 }
 
 ```
+
 Ahora, definimos los conjuntos de valores que probaremos para los hiperparámetros. Ejecutamos la función \texttt{opt.hiperparams} para encontrar la combinación óptima.
 
 ```{r,  results='hide'}
+#definimos las opciones de hiperparametros teniendo en cuenta que nuestro modelo tiene +46 mil observaciones. por ejemplo, un minsplit muy chico podria resultar en un arbol muy grande ya que con tantas observaciones lo mas probable es que haya suficientes para hacer un corte.
 maxdepth_options <- c(3, 5, 7, 9, 11)
 minsplit_options <- c(1000, 3000, 6000, 10000, 20000) 
 minbucket_options <- c(50, 100, 500, 1000, 5000)
@@ -609,9 +601,9 @@ minbucket_options <- c(50, 100, 500, 1000, 5000)
 results <- opt_hiperparams(train_set, valid_set, maxdepth_options, minsplit_options, minbucket_options)
 
 best_model_params <- results[which.max(results$auc),]
+
 best_maxdepth <- best_model_params$maxdepth
 best_maxdepth <- as.integer(as.character(best_maxdepth))
-
 best_minsplit <- best_model_params$minsplit_val
 best_minbucket <- best_model_params$minbucket_val
 ```
@@ -623,10 +615,10 @@ Sin embargo, a medida que aumenta el minsplit los otros hiperparámetros dejan d
 ```{r}
 ggplot(results, aes(x = minsplit_val, y = auc)) +
   geom_point(aes(color = factor(maxdepth), shape = factor(minbucket_val)), size = 3, alpha = 0.7) +
-  scale_shape_manual(values = c(15, 16, 17, 18, 10)) +  # Custom shapes for better visibility
-  scale_color_brewer(palette = "Set1") +  # Customize colors to highlight maxdepth 9
+  scale_shape_manual(values = c(15, 16, 17, 18, 10)) +  
+  scale_color_brewer(palette = "Set1") +  
   scale_y_continuous(breaks = seq(0.45, 0.9, by = 0.05), 
-                     labels = function(x) format(x, nsmall = 2)) +  # Custom labels for y-axis
+                     labels = function(x) format(x, nsmall = 2)) +  
   labs(x = "Min Split Value",
        y = "AUC-ROC",
        title = "AUC-ROC by Min Split with Different Max Depth and Min Bucket Combinations",
@@ -658,17 +650,18 @@ new_model <- rpart(class ~ .,
                    xval = 0)
 
 # Hacer predicciones en el conjunto de testeo
-test_predictions <- predict(new_model, newdata = test_set, type = "prob")[,2]
+test_predictions <- predict(new_model, newdata = test_set, type = "prob")
 
 # Calcular el AUC-ROC
-roc_curve <- roc(test_set$class, test_predictions)
-auc_opt <- auc(roc_curve)
+roc_curve <- roc.curve(scores.class0 = test_predictions[, "edible"],
+                     weights.class0 = test_set$class == "edible",
+                     curve = TRUE)
+auc_opt <- roc_curve$auc
 ```
 
 Finalmente, visualizamos el modelo optimizado y evaluamos sus métricas de rendimiento.
 
 ```{r}
-library(rpart.plot)
 rpart.plot(new_model)
 ```
 
@@ -677,7 +670,15 @@ print(paste("AUC-ROC Score:", auc_opt))
 ```
 
 ```{r, out.width="70%", out.height="70%", fig.align = "center"}
-plot(roc_curve, main = "ROC Curve", col = "blue", lwd = 2, xlim = c(1.0,0.0))
+plot(roc_curve$curve[, 1], roc_curve$curve[, 2],
+     type = "l",
+     col = "blue",
+     lwd = 2,
+     xlab = "False Positive Rate (FPR)",
+     ylab = "True Positive Rate (TPR)",
+     main = "ROC Curve")
+
+abline(a = 0, b = 1, lty = 2, col = "red")
 ```
 
 A continuación, comparamos el rendimiento del modelo optimizado con el modelo básico evaluando la matriz de confusión, el TPR, y el FPR.
@@ -687,6 +688,8 @@ prediccion <- predict(new_model, test_set, type = "class")  # Clases predichas
 
 matrix <- confusionMatrix(prediccion, test_set$class)
 print("Matriz de Confusión:")
+
+# trasponemos para que se vea como la anterior (y la de clase)
 
 print(t(matrix$table))
 ```
@@ -721,15 +724,15 @@ Estas nuevas variables, aunque no fueron las más influyentes en los primeros co
 
 **Rendimiento**
 
-El valor de AUC-ROC del árbol optimizado es de 0.877, lo que representa una mejora significativa de 0.08 puntos en comparación con el árbol básico. Esta mejora se traduce también en un mejor True Positive Rate (TPR) y una reducción del False Positive Rate (FPR). Específicamente, el TPR aumentó en 0.10 puntos, lo que implica que el modelo ahora es más efectivo en identificar correctamente los hongos comestibles. Más crucialmente, el FPR disminuyó de 0.16 a 0.145, reduciendo el riesgo de clasificar incorrectamente hongos venenosos como comestibles—aumentando así la seguridad del modelo en aplicaciones sensibles.
+El valor de AUC-ROC del árbol optimizado es de 0.877, lo que representa una mejora significativa de 0.08 puntos en comparación con el árbol básico. Esta mejora se traduce también en un mejor True Positive Rate (TPR) y una reducción del False Positive Rate (FPR). Específicamente, el TPR aumentó en 0.10 puntos, lo que implica que el modelo ahora es más efectivo en identificar correctamente los hongos comestibles. Más crucialmente, el FPR disminuyó de 0.16 a 0.145, reduciendo el riesgo de clasificar incorrectamente hongos venenosos como comestibles — aumentando así la seguridad del modelo en aplicaciones sensibles.
 
 **Variables**
 
-Aunque las variables clave del árbol básico siguen desempeñando un papel principal en el árbol optimizado, la introducción de nuevas variables en los niveles inferiores sugiere un cambio en la estructura de importancia. La aparición de variables como habitat y season en las ramas más profundas indica que estas variables, aunque no determinantes por sí solas, contribuyen a mejorar la clasificación cuando se combinan con otras. Esta combinación de variables más específicas permite al modelo optimizado tener un enfoque más refinado, mejorando la capacidad de generalización y aumentando el AUC-ROC.
+Aunque las variables clave del árbol básico siguen desempeñando un papel principal en el árbol optimizado, la introducción de nuevas variables en los niveles inferiores sugiere un cambio en la estructura del árbol. La aparición de variables como habitat y season en las ramas más profundas indica que estas variables, aunque no determinantes por sí solas, contribuyen a mejorar la clasificación cuando se combinan con otras. Esta combinación de variables más específicas permite al modelo optimizado tener un enfoque más refinado, mejorando la capacidad de generalización y aumentando el AUC-ROC.
 
 **Consideraciones finales**
 
-En resumen, la optimización de los hiperparámetros ha llevado a un árbol más profundo y detallado, que captura relaciones más complejas en los datos. Esto ha resultado en un modelo más preciso y seguro, especialmente en este contexto donde la minimización del FPR es crítico. Este proceso de optimización no solo ha mejorado las métricas de rendimiento, sino que también revelo la importancia de considerar variables adicionales que, en un primer análisis, podrían haber sido subestimadas.
+En resumen, la optimización de los hiperparámetros ha llevado a un árbol más profundo y detallado, que captura relaciones más complejas en los datos, pero manteniendo los cortes iniciales vistos inicialmente. Esto ha resultado en un modelo más preciso y seguro, especialmente en este contexto donde la minimización del FPR es crítico. Este proceso de optimización no solo ha mejorado las métricas de rendimiento, sino que también revelo la importancia de considerar variables adicionales que, en un primer análisis, podrían haber sido subestimadas.
 
 
 # Ejercicio 7: Análisis del impacto de los valores faltantes
@@ -742,7 +745,6 @@ Simular la pérdida de datos en diferentes grados nos permite evaluar la robuste
 
 ```{r}
 add_na_to_df <- function(df, na_fraction) {
-  # Seleccionar las columnas predictoras
   predictors <- df %>% select(-class)
   
   num_rows <- nrow(predictors)
@@ -759,6 +761,7 @@ add_na_to_df <- function(df, na_fraction) {
   return(df_na)
 }
 
+#agregamos 20, 50 y 75% de NAs porque los datos originales no tenian
 veinte_train <- add_na_to_df(train_set, 0.20)
 cincuenta_train <- add_na_to_df(train_set, 0.50)
 setentaicinco_train <- add_na_to_df(train_set, 0.75)
@@ -878,47 +881,3 @@ ggplot(auc_results, aes(x = Percentage_NA, y = AUC_ROC)) +
 ```
 
 # Ejercicio 8: Conclusiones y discusión
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
